@@ -4,7 +4,7 @@ import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, dele
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, signOut, updateProfile } from 'firebase/auth';
 import { auth, db } from '../database/database';
 import * as ImagePicker from 'expo-image-picker';
-import Constants from 'expo-constants';
+import { IMGBB_API_KEY } from '@env';
 
 export function usePerfilLogic(navigation: any) {
   const [userData, setUserData] = useState<any>({});
@@ -27,8 +27,6 @@ export function usePerfilLogic(navigation: any) {
     pedidosSemana: 0,
     lucroEstimado: 0,
   });
-
-  const IMGBB_API_KEY = Constants.expoConfig?.extra?.imgbbApiKey;
 
   useEffect(() => {
     carregarDadosUsuario();

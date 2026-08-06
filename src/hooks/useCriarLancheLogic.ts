@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../database/database';
 import * as ImagePicker from 'expo-image-picker';
-import Constants from 'expo-constants';
+import { IMGBB_API_KEY } from '@env';
 
 export function useCriarLancheLogic(navigation: any) {
   const [nome, setNome] = useState('');
@@ -20,8 +20,6 @@ export function useCriarLancheLogic(navigation: any) {
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [permissaoVerificada, setPermissaoVerificada] = useState(false);
-
-  const IMGBB_API_KEY = Constants.expoConfig?.extra?.imgbbApiKey;
 
   const opcoesCategorias = [
     { id: 'lanche', label: '🍔 Salgado', cor: '#FF6B6B' },

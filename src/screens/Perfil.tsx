@@ -20,7 +20,7 @@ import { auth, db } from "../database/database";
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc, orderBy } from "firebase/firestore";
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, signOut, updateProfile } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
-import Constants from "expo-constants";
+import { IMGBB_API_KEY } from "@env";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
@@ -46,8 +46,6 @@ export default function Perfil({ navigation }: any) {
     pedidosSemana: 0,
     lucroEstimado: 0,
   });
-
-  const IMGBB_API_KEY = Constants.expoConfig?.extra?.imgbbApiKey;
 
   useEffect(() => {
     carregarDadosUsuario();

@@ -11,8 +11,7 @@
     "extra": {
       "eas": {
         "projectId": "220c8541-348c-4006-9008-74af59054c75"
-      },
-      "imgbbApiKey": "9d90444472af2cb05477d13d700d56ab"
+      }
     },
     "splash": {
       "image": "./assets/splash-icon.png",
