@@ -1,0 +1,65 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Expo / React Native
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Ambiente e variáveis
+.env
+.env.local
+.env.*.local
+*.env
+*.env.local
+
+# Configuração Firebase (projeto) e anotações locais
+.firebaserc
+firestore.rules
+.txt
+.txt1
+
+# Firebase (credenciais e chaves)
+firebase-debug.log
+firestore-debug.log
+google-services.json
+GoogleService-Info.plist
+*.pem
+*.cert
+*.key
+serviceAccountKey.json
+service-account.json
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Builds
+android/
+ios/
+build/
+dist/
+*.apk
+*.aab
+*.ipa
+
+# Logs
+logs/
+*.log
+
+# Sistema
+*.tmp
+*.temp
