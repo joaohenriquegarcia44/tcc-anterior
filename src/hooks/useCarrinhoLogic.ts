@@ -67,8 +67,7 @@ export function useCarrinhoLogic(navigation: any) {
       Alert.alert('Carrinho Vazio', 'Adicione itens ao carrinho antes de finalizar');
       return;
     }
-    navigation.navigate('EnderecoEntrega', {
-      cartTotal: total,
+    navigation.navigate('ConfirmarPedido', {
       dataRetirada
     });
   }

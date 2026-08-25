@@ -71,7 +71,7 @@ export default function PedidosRecebidos({ navigation }: any) {
           style={styles.botaoConfirmar}
           onPress={() => navigation.navigate("LerQRCode", { pedidoId: item.id, codigoNumerico: item.codigoNumerico })}
         >
-          <Text style={styles.botaoTexto}>✅ Confirmar entrega</Text>
+          <Text style={styles.botaoTexto}>✅ Confirmar retirada</Text>
         </TouchableOpacity>
       </View>
     );

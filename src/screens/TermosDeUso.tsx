@@ -18,10 +18,10 @@ export default function TermosDeUso() {
 
         <Text style={styles.subtitulo}>2. Descrição do Serviço</Text>
         <Text style={styles.texto}>
-          O Aplicativo permite que usuários realizem pré‑encomendas de lanches artesanais de vendedores
-          cadastrados, com retirada presencial ou entrega mediante taxa por quilômetro. O Aplicativo atua
+          O Aplicativo permite que usuários realizem pré-encomendas de lanches artesanais de vendedores
+          cadastrados, com retirada presencial. O Aplicativo atua
           como intermediário entre compradores e vendedores, não sendo responsável pela qualidade dos
-          produtos ou pela pontualidade da entrega.
+          produtos.
         </Text>
 
         <Text style={styles.subtitulo}>3. Cadastro e Conta</Text>
@@ -33,8 +33,7 @@ export default function TermosDeUso() {
 
         <Text style={styles.subtitulo}>4. Compras e Pagamentos</Text>
         <Text style={styles.texto}>
-          4.1. Ao finalizar um pedido, você concorda em pagar o valor total indicado, incluindo eventuais taxas
-          de entrega ou descontos aplicados.
+          4.1. Ao finalizar um pedido, você concorda em pagar o valor total indicado, incluindo eventuais descontos aplicados.
         </Text>
         <Text style={styles.texto}>
           4.2. Os pagamentos podem ser realizados presencialmente (no ato da retirada) ou via PIX, processados

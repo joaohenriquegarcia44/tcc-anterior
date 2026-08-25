@@ -11,12 +11,12 @@ export default function PoliticasPrivacidade() {
 
         <Text style={styles.subtitulo}>1. Coleta e Uso de Informações</Text>
         <Text style={styles.texto}>
-          O aplicativo "AL Lanches" coleta apenas os dados estritamente necessários para o funcionamento do serviço: nome, e-mail, telefone e endereço de entrega (quando fornecido). As informações de pagamento (PIX, cartão, etc.) são processadas exclusivamente pelo Mercado Pago, e o aplicativo não armazena nenhum dado bancário ou de cartão de crédito.
+          O aplicativo "AL Lanches" coleta apenas os dados estritamente necessários para o funcionamento do serviço: nome, e-mail e telefone. As informações de pagamento (PIX, cartão, etc.) são processadas exclusivamente pelo Mercado Pago, e o aplicativo não armazena nenhum dado bancário ou de cartão de crédito.
         </Text>
 
         <Text style={styles.subtitulo}>2. Compartilhamento de Dados</Text>
         <Text style={styles.texto}>
-          Não compartilhamos seus dados pessoais com terceiros, exceto quando necessário para a execução do serviço (ex.: envio do endereço ao vendedor para entrega) ou por exigência legal. Os dados de pagamento são enviados diretamente ao Mercado Pago, que possui sua própria política de privacidade.
+          Não compartilhamos seus dados pessoais com terceiros, exceto quando necessário para a execução do serviço ou por exigência legal. Os dados de pagamento são enviados diretamente ao Mercado Pago, que possui sua própria política de privacidade.
         </Text>
 
         <Text style={styles.subtitulo}>3. Segurança dos Dados</Text>
@@ -36,9 +36,6 @@ export default function PoliticasPrivacidade() {
         </Text>
         <Text style={styles.lista}>
           • Uso indevido do aplicativo por terceiros que obtenham seu login e senha.
-        </Text>
-        <Text style={styles.lista}>
-          • Problemas na entrega dos produtos decorrentes de informações incorretas fornecidas pelo comprador (endereço, horário, etc.).
         </Text>
         <Text style={styles.lista}>
           • Danos morais, diretos ou indiretos, resultantes do uso do aplicativo ou da impossibilidade de uso.

@@ -4,22 +4,8 @@ import { CartContext } from '../services/CartContext';
 import { auth, db } from '../database/database';
 import { collection, addDoc, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 
-// Função para calcular distância entre dois pontos (Haversine formula)
-function calcularDistancia(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return Math.round((R * c) * 100) / 100;
-}
-
 export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const dataRecebida = route.params?.dataRetirada;
-  const entregaTipo = route.params?.entregaTipo || 'retirada';
-  const enderecoEntrega = route.params?.endereco || null;
 
   const { cart, limparCarrinho } = useContext(CartContext);
   const [loading, setLoading] = useState(false);
@@ -29,9 +15,6 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const [usandoPontos, setUsandoPontos] = useState(false);
   const [pontosParaUsar, setPontosParaUsar] = useState(0);
   const [processandoPix, setProcessandoPix] = useState(false);
-  const [taxaEntrega, setTaxaEntrega] = useState(0);
-  const [vendedorConfig, setVendedorConfig] = useState<any>(null);
-  const [distancia, setDistancia] = useState(0);
 
   // 🔥 Constantes
   const REAIS_POR_PONTO = 5;
@@ -53,12 +36,11 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
   }, [usandoPontos, total, pontosParaUsar]);
 
   const totalComDesconto = useMemo(() => total - descontoPontos, [total, descontoPontos]);
-  const totalFinal = useMemo(() => totalComDesconto + taxaEntrega, [totalComDesconto, taxaEntrega]);
+  const totalFinal = useMemo(() => totalComDesconto, [totalComDesconto]);
   const pontosGanhos = useMemo(() => Math.floor(total / REAIS_POR_PONTO), [total]);
 
   useEffect(() => {
     carregarDadosUsuario();
-    carregarConfiguracaoVendedor();
   }, []);
 
   async function carregarDadosUsuario() {
@@ -73,39 +55,6 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     } catch (error) {
       console.log(error);
     }
-  }
-
-  async function carregarConfiguracaoVendedor() {
-    if (cart.length === 0) return;
-    const vendedorId = cart[0].userId;
-    if (!vendedorId) return;
-
-    try {
-      const configRef = doc(db, 'configuracoes_entrega', vendedorId);
-      const configSnap = await getDoc(configRef);
-      if (configSnap.exists()) {
-        const config = configSnap.data();
-        setVendedorConfig(config);
-        if (entregaTipo === 'entrega' && enderecoEntrega && config.pontoPartida) {
-          calcularFrete(config);
-        }
-      }
-    } catch (error) {
-      console.log('Erro ao carregar configuração do vendedor:', error);
-    }
-  }
-
-  function calcularFrete(config: any) {
-    const dist = calcularDistancia(
-      config.pontoPartida.latitude,
-      config.pontoPartida.longitude,
-      enderecoEntrega.latitude,
-      enderecoEntrega.longitude
-    );
-    setDistancia(dist);
-    const valorPorKm = config.valorPorKm || 2;
-    const frete = dist * valorPorKm;
-    setTaxaEntrega(frete);
   }
 
   function gerarCodigoNumerico() {
@@ -175,10 +124,8 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
           imagem: item.imagem,
           localRetirada: item.localRetirada || 'Não informado',
         })),
-        subtotal: itens.reduce((sum, item) => sum + item.preco * item.quantidade, 0),
+        subtotal: itens.reduce((sum: number, item: any) => sum + item.preco * item.quantidade, 0),
         descontoPontos: descontoPontos / pedidosPorVendedor.size,
-        taxaEntrega: taxaEntrega / pedidosPorVendedor.size,
-        distancia: distancia / pedidosPorVendedor.size,
         total: totalFinalValue / pedidosPorVendedor.size,
         dataRetirada,
         metodoPagamento,
@@ -188,8 +135,6 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
         qrCode: idUnico,
         codigoNumerico,
         paymentIntentId: paymentIntentId || null,
-        entregaTipo,
-        enderecoEntrega: enderecoEntrega || null,
         avaliado: false,
         criadoEm: new Date(),
       };
@@ -323,8 +268,6 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     usandoPontos,
     pontosParaUsar,
     processandoPix,
-    taxaEntrega,
-    distancia,
     formatarData,
     toggleUsarPontos,
     pagarComPIX,
@@ -336,8 +279,6 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     TOTAL_FINAL: totalFinal,
     PONTOS_GANHOS: pontosGanhos,
     REAIS_POR_PONTO,
-    entregaTipo,
-    enderecoEntrega,
     dataRetiradaObj,
   };
 }

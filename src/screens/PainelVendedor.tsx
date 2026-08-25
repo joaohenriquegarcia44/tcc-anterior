@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { collection, getDocs, deleteDoc, doc, query, where } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import { getDoc } from "firebase/firestore";
+import { colors, spacing, borderRadius, shadows } from "../styles/theme";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2; // 2 colunas com margens
@@ -197,9 +198,6 @@ export default function PainelVendedor({ navigation }: any) {
           <TouchableOpacity style={styles.botaoGrafico} onPress={() => navigation.navigate("GraficoVendas")}>
             <Text style={styles.botaoTexto}>📊 Vendas</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.botaoConfigurarEntrega} onPress={() => navigation.navigate("ConfigurarEntrega")}>
-            <Text style={styles.botaoTexto}>🚚 Entrega</Text>
-          </TouchableOpacity>
         </View>
 
         {lanches.length === 0 ? (
@@ -235,13 +233,13 @@ export default function PainelVendedor({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#f8f8f8" },
+  safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
-  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FF6B6B20", justifyContent: "center", alignItems: "center" },
-  backIcon: { fontSize: 24, color: "#FF6B6B", fontWeight: "bold" },
-  titulo: { fontSize: 22, fontWeight: "bold", color: "#333", textAlign: "center" },
-  addButtonHeader: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#FF6B6B", justifyContent: "center", alignItems: "center", elevation: 2 },
+  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + "20", justifyContent: "center", alignItems: "center" },
+  backIcon: { fontSize: 24, color: colors.primary, fontWeight: "bold" },
+  titulo: { fontSize: 22, fontWeight: "bold", color: colors.text, textAlign: "center" },
+  addButtonHeader: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, justifyContent: "center", alignItems: "center", elevation: 2 },
   addButtonHeaderText: { fontSize: 24, color: "#fff", fontWeight: "bold" },
 
   buttonGroup: {
@@ -251,11 +249,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     gap: 10,
   },
-  botaoPedidos: { flex: 1, minWidth: "48%", backgroundColor: "#4ECDC4", paddingVertical: 12, borderRadius: 12, alignItems: "center", elevation: 2 },
+  botaoPedidos: { flex: 1, minWidth: "48%", backgroundColor: colors.secondary, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
   botaoPedidosTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
-  botaoLerQR: { flex: 1, minWidth: "48%", backgroundColor: "#FF6B6B", paddingVertical: 12, borderRadius: 12, alignItems: "center", elevation: 2 },
-  botaoGrafico: { flex: 1, minWidth: "48%", backgroundColor: "#9b59b6", paddingVertical: 12, borderRadius: 12, alignItems: "center", elevation: 2 },
-  botaoConfigurarEntrega: { flex: 1, minWidth: "48%", backgroundColor: "#f39c12", paddingVertical: 12, borderRadius: 12, alignItems: "center", elevation: 2 },
+  botaoLerQR: { flex: 1, minWidth: "48%", backgroundColor: colors.primary, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
+  botaoGrafico: { flex: 1, minWidth: "48%", backgroundColor: "#9b59b6", paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
+  botaoConfigurarEntrega: { flex: 1, minWidth: "48%", backgroundColor: colors.warning, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
   botaoTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
 
   sectionHeader: { marginTop: 16, marginBottom: 12, paddingHorizontal: 4 },
@@ -265,7 +263,7 @@ const styles = StyleSheet.create({
   row: { justifyContent: "space-between" },
   card: {
     width: "48%",
-    backgroundColor: "#fff",
+    backgroundColor: colors.white,
     borderRadius: 16,
     marginBottom: 16,
     elevation: 3,

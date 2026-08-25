@@ -17,13 +17,8 @@ import PedidosRecebidos from "../screens/PedidosRecebidos";
 import MeusPedidos from "../screens/MeusPedidos";
 import AvaliarPedido from "../screens/AvaliarPedido";
 import GraficoVendas from "../screens/GraficoVendas";
-import EnderecoEntrega from "../screens/EnderecoEntrega";
-import ConfigurarEntrega from "../screens/ConfigurarEntrega";
 import PoliticasPrivacidade from "../screens/PoliticasPrivacidade";
 import TermosDeUso from "../screens/TermosDeUso";
-
-
-
 
 const Stack = createNativeStackNavigator();
 
@@ -47,8 +42,6 @@ export default function StackNavigator() {
       <Stack.Screen name="MeusPedidos" component={MeusPedidos} options={{ title: "Meus Pedidos" }} />
       <Stack.Screen name="AvaliarPedido" component={AvaliarPedido} options={{ title: "Avaliar Pedido" }} />
       <Stack.Screen name="GraficoVendas" component={GraficoVendas} options={{ title: "Gráfico de Vendas" }} />
-      <Stack.Screen name="EnderecoEntrega" component={EnderecoEntrega} options={{ title: "Endereço de Entrega" }} />
-      <Stack.Screen name="ConfigurarEntrega" component={ConfigurarEntrega} options={{ title: "Configurar Entrega" }} />
       <Stack.Screen name="PoliticasPrivacidade" component={PoliticasPrivacidade} options={{ title: "Política de Privacidade" }} />
       <Stack.Screen name="TermosDeUso" component={TermosDeUso} options={{ title: "Termos de Uso" }} />
     </Stack.Navigator>

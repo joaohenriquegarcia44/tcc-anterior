@@ -9,11 +9,13 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Platform,
 } from "react-native";
 import { CartContext } from "../services/CartContext";
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import StarRating from "../components/StarRating";
+import { colors, spacing, borderRadius, shadows } from "../styles/theme";
 
 export default function Produto({ route, navigation }: any) {
   const { produto } = route.params;
@@ -81,7 +83,6 @@ export default function Produto({ route, navigation }: any) {
 
   function incrementar() {
     const limiteEstoque = produto.quantidadeDisponivel || 999;
-    
     if (quantidade >= limiteEstoque) {
       Alert.alert("Estoque insuficiente", `Apenas ${limiteEstoque} disponíveis`);
       return;
@@ -135,144 +136,176 @@ export default function Produto({ route, navigation }: any) {
   const estaDisponivel = produto.disponivel !== false && (produto.quantidadeDisponivel || 999) > 0;
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: produto.imagem }} style={styles.imagem} />
-        {produto.promocao && (
-          <View style={styles.promoBadge}>
-            <Text style={styles.promoBadgeText}>-{descontoPercentual}% OFF</Text>
-          </View>
-        )}
-        <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorito}>
-          <Text style={styles.favoriteIcon}>{isFavorito ? "❤️" : "🤍"}</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: produto.imagem }} style={styles.imagem} />
+          <View style={styles.imageOverlay} />
+          
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
 
-      <View style={styles.content}>
-        <View style={styles.headerInfo}>
-          {produto.categoria && (
-            <View style={[styles.categoriaBadge, { backgroundColor: getCorCategoria(produto.categoria) + "20" }]}>
-              <Text style={[styles.categoriaText, { color: getCorCategoria(produto.categoria) }]}>
-                {getNomeCategoria(produto.categoria)}
-              </Text>
+          <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorito}>
+            <Text style={styles.favoriteIcon}>{isFavorito ? "❤️" : "🤍"}</Text>
+          </TouchableOpacity>
+
+          {produto.promocao && (
+            <View style={styles.promoBadge}>
+              <Text style={styles.promoBadgeText}>-{descontoPercentual}% OFF</Text>
             </View>
           )}
-          <Text style={styles.nome}>{produto.nome}</Text>
+
+          <View style={styles.imageBottomInfo}>
+            <Text style={styles.imagePrice}>R$ {precoAtual.toFixed(2)}</Text>
+          </View>
         </View>
 
-        <View style={styles.ratingSection}>
-          <StarRating rating={mediaAvaliacao} readonly={true} />
-          <Text style={styles.ratingText}>{mediaAvaliacao.toFixed(1)} ({avaliacoes.length} avaliações)</Text>
-        </View>
-
-        <View style={styles.priceSection}>
-          {precoOriginal ? (
-            <>
-              <Text style={styles.precoOriginal}>R$ {precoOriginal.toFixed(2)}</Text>
-              <Text style={styles.preco}>R$ {precoAtual.toFixed(2)}</Text>
-              <View style={styles.economiaBadge}>
-                <Text style={styles.economiaText}>Economize R$ {(precoOriginal - precoAtual).toFixed(2)}</Text>
-              </View>
-            </>
-          ) : (
-            <Text style={styles.preco}>R$ {precoAtual.toFixed(2)}</Text>
-          )}
-        </View>
-
-        <View style={styles.statusSection}>
-          {estaDisponivel ? (
-            <View style={styles.disponivelCard}>
-              <Text style={styles.disponivelIcon}>✅</Text>
-              <View>
-                <Text style={styles.disponivelTitle}>Disponível</Text>
-                <Text style={styles.disponivelText}>
-                  {produto.quantidadeDisponivel > 0 ? `${produto.quantidadeDisponivel} unidades` : "Estoque ilimitado"}
+        <View style={styles.content}>
+          <View style={styles.headerInfo}>
+            {produto.categoria && (
+              <View style={[styles.categoriaBadge, { backgroundColor: getCorCategoria(produto.categoria) + "15" }]}>
+                <Text style={[styles.categoriaText, { color: getCorCategoria(produto.categoria) }]}>
+                  {getNomeCategoria(produto.categoria)}
                 </Text>
               </View>
-            </View>
-          ) : (
-            <View style={styles.indisponivelCard}>
-              <Text style={styles.indisponivelIcon}>❌</Text>
-              <View>
-                <Text style={styles.indisponivelTitle}>Indisponível</Text>
-                <Text style={styles.indisponivelText}>Não disponível no momento</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 Descrição</Text>
-          <Text style={styles.descricao}>{produto.descricao}</Text>
-        </View>
-
-        {produto.ingredientes && produto.ingredientes.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🥗 Ingredientes</Text>
-            <View style={styles.ingredientesContainer}>
-              {produto.ingredientes.map((ingrediente: string, index: number) => (
-                <View key={index} style={styles.ingredienteTag}>
-                  <Text style={styles.ingredienteText}>{ingrediente}</Text>
-                </View>
-              ))}
-            </View>
+            )}
+            <Text style={styles.nome}>{produto.nome}</Text>
           </View>
-        )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>ℹ️ Informações</Text>
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>⏱️</Text>
-              <View>
-                <Text style={styles.infoLabel}>Tempo de preparo</Text>
-                <Text style={styles.infoValue}>{produto.tempoPreparo || "15-25"} min</Text>
-              </View>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>📍</Text>
-              <View>
-                <Text style={styles.infoLabel}>Retirada</Text>
-                <Text style={styles.infoValue}>Cantina do IFSul</Text>
-              </View>
-            </View>
-            {vendedorInfo && (
-              <View style={styles.infoRow}>
-                <Text style={styles.infoIcon}>👨‍🍳</Text>
+          <View style={styles.ratingSection}>
+            <StarRating rating={mediaAvaliacao} readonly={true} />
+            <Text style={styles.ratingText}>{mediaAvaliacao.toFixed(1)} ({avaliacoes.length} avaliações)</Text>
+          </View>
+
+          <View style={styles.priceSection}>
+            {precoOriginal ? (
+              <View style={styles.priceCard}>
                 <View>
-                  <Text style={styles.infoLabel}>Vendedor</Text>
-                  <Text style={styles.infoValue}>{vendedorInfo.nome || "Aluno IFSul"}</Text>
+                  <Text style={styles.precoOriginal}>R$ {precoOriginal.toFixed(2)}</Text>
+                  <Text style={styles.preco}>R$ {precoAtual.toFixed(2)}</Text>
+                </View>
+                <View style={styles.economiaBadge}>
+                  <Text style={styles.economiaText}>Economize R$ {(precoOriginal - precoAtual).toFixed(2)}</Text>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.preco}>R$ {precoAtual.toFixed(2)}</Text>
+            )}
+          </View>
+
+          <View style={styles.statusSection}>
+            {estaDisponivel ? (
+              <View style={styles.disponivelCard}>
+                <View style={styles.statusDot} />
+                <View>
+                  <Text style={styles.disponivelTitle}>Disponível agora</Text>
+                  <Text style={styles.disponivelText}>
+                    {produto.quantidadeDisponivel > 0 ? `${produto.quantidadeDisponivel} unidades em estoque` : "Estoque ilimitado"}
+                  </Text>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.indisponivelCard}>
+                <View style={styles.statusDotIndisponivel} />
+                <View>
+                  <Text style={styles.indisponivelTitle}>Indisponível</Text>
+                  <Text style={styles.indisponivelText}>Não disponível no momento</Text>
                 </View>
               </View>
             )}
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>⭐ Avaliações</Text>
-            <TouchableOpacity><Text style={styles.seeAll}>Ver todas</Text></TouchableOpacity>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>📋 Descrição</Text>
+            <Text style={styles.descricao}>{produto.descricao}</Text>
           </View>
-          {loadingAvaliacoes ? (
-            <ActivityIndicator color="#FF6B6B" />
-          ) : avaliacoes.length === 0 ? (
-            <Text style={styles.noReviews}>Ainda não há avaliações</Text>
-          ) : (
-            avaliacoes.map((avaliacao, index) => (
-              <View key={index} style={styles.reviewCard}>
-                <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewUser}>Aluno #{avaliacao.compradorId?.slice(-6)}</Text>
-                  <StarRating rating={avaliacao.nota} readonly={true} />
-                </View>
-                {avaliacao.comentario && <Text style={styles.reviewComment}>"{avaliacao.comentario}"</Text>}
-                <Text style={styles.reviewDate}>
-                  {new Date(avaliacao.criadoEm?.toDate()).toLocaleDateString("pt-BR")}
-                </Text>
+
+          {produto.ingredientes && produto.ingredientes.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>🥗 Ingredientes</Text>
+              <View style={styles.ingredientesContainer}>
+                {produto.ingredientes.map((ingrediente: string, index: number) => (
+                  <View key={index} style={styles.ingredienteTag}>
+                    <Text style={styles.ingredienteText}>{ingrediente}</Text>
+                  </View>
+                ))}
               </View>
-            ))
+            </View>
           )}
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>ℹ️ Informações</Text>
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconContainer}>
+                  <Text style={styles.infoIcon}>⏱️</Text>
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Tempo de preparo</Text>
+                  <Text style={styles.infoValue}>{produto.tempoPreparo || "15-25"} min</Text>
+                </View>
+              </View>
+              <View style={styles.infoDivider} />
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconContainer}>
+                  <Text style={styles.infoIcon}>📍</Text>
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Retirada</Text>
+                  <Text style={styles.infoValue}>Cantina do IFSul</Text>
+                </View>
+              </View>
+              {vendedorInfo && (
+                <>
+                  <View style={styles.infoDivider} />
+                  <View style={styles.infoRow}>
+                    <View style={styles.infoIconContainer}>
+                      <Text style={styles.infoIcon}>👨‍🍳</Text>
+                    </View>
+                    <View style={styles.infoContent}>
+                      <Text style={styles.infoLabel}>Vendedor</Text>
+                      <Text style={styles.infoValue}>{vendedorInfo.nome || "Aluno IFSul"}</Text>
+                    </View>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>⭐ Avaliações</Text>
+            </View>
+            {loadingAvaliacoes ? (
+              <ActivityIndicator color={colors.primary} />
+            ) : avaliacoes.length === 0 ? (
+              <View style={styles.noReviewsContainer}>
+                <Text style={styles.noReviewsIcon}>💬</Text>
+                <Text style={styles.noReviews}>Ainda não há avaliações</Text>
+              </View>
+            ) : (
+              avaliacoes.map((avaliacao, index) => (
+                <View key={index} style={styles.reviewCard}>
+                  <View style={styles.reviewHeader}>
+                    <View style={styles.reviewUserContainer}>
+                      <View style={styles.reviewAvatar}>
+                        <Text style={styles.reviewAvatarText}>👤</Text>
+                      </View>
+                      <Text style={styles.reviewUser}>Aluno #{avaliacao.compradorId?.slice(-6)}</Text>
+                    </View>
+                    <StarRating rating={avaliacao.nota} readonly={true} />
+                  </View>
+                  {avaliacao.comentario && <Text style={styles.reviewComment}>"{avaliacao.comentario}"</Text>}
+                  <Text style={styles.reviewDate}>
+                    {new Date(avaliacao.criadoEm?.toDate()).toLocaleDateString("pt-BR")}
+                  </Text>
+                </View>
+              ))
+            )}
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
       {estaDisponivel && (
         <View style={styles.bottomBar}>
@@ -285,7 +318,7 @@ export default function Produto({ route, navigation }: any) {
               <Text style={styles.quantidadeButtonText}>+</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.botaoComprar} onPress={adicionarAoCarrinhoComQuantidade}>
+          <TouchableOpacity style={styles.botaoComprar} onPress={adicionarAoCarrinhoComQuantidade} activeOpacity={0.8}>
             <Text style={styles.botaoComprarTexto}>Adicionar • R$ {(precoAtual * quantidade).toFixed(2)}</Text>
           </TouchableOpacity>
         </View>
@@ -294,12 +327,14 @@ export default function Produto({ route, navigation }: any) {
       <Modal transparent={true} visible={showModal} animationType="fade">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalIcon}>✅</Text>
+            <View style={styles.modalIconContainer}>
+              <Text style={styles.modalIcon}>✅</Text>
+            </View>
             <Text style={styles.modalText}>Adicionado ao carrinho!</Text>
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -313,64 +348,225 @@ function getNomeCategoria(categoria: string): string {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
-  imageContainer: { position: "relative", backgroundColor: "#fff" },
-  imagem: { width: "100%", height: 300, resizeMode: "cover" },
-  promoBadge: { position: "absolute", top: 20, right: 20, backgroundColor: "#e74c3c", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  promoBadgeText: { color: "#fff", fontWeight: "bold", fontSize: 14 },
-  favoriteButton: { position: "absolute", bottom: 20, right: 20, width: 45, height: 45, borderRadius: 22.5, backgroundColor: "rgba(255,255,255,0.9)", justifyContent: "center", alignItems: "center" },
-  favoriteIcon: { fontSize: 24 },
-  backButton: { position: "absolute", top: 50, left: 20, width: 45, height: 45, borderRadius: 22.5, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  backIcon: { color: "#fff", fontSize: 28, fontWeight: "bold" },
-  content: { padding: 20 },
-  headerInfo: { marginBottom: 12 },
-  categoriaBadge: { alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, marginBottom: 8 },
-  categoriaText: { fontSize: 12, fontWeight: "500" },
-  nome: { fontSize: 28, fontWeight: "bold", color: "#333" },
-  ratingSection: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
-  ratingText: { marginLeft: 8, fontSize: 14, color: "#666" },
-  priceSection: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", marginBottom: 16 },
-  precoOriginal: { fontSize: 16, color: "#999", textDecorationLine: "line-through", marginRight: 8 },
-  preco: { fontSize: 32, fontWeight: "bold", color: "#FF6B6B", marginRight: 8 },
-  economiaBadge: { backgroundColor: "#27ae6020", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
-  economiaText: { fontSize: 12, color: "#27ae60", fontWeight: "500" },
-  statusSection: { marginBottom: 20 },
-  disponivelCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#E8F5E9", padding: 12, borderRadius: 12 },
-  disponivelIcon: { fontSize: 24, marginRight: 12 },
-  disponivelTitle: { fontSize: 14, fontWeight: "bold", color: "#27ae60" },
-  disponivelText: { fontSize: 12, color: "#666" },
-  indisponivelCard: { flexDirection: "row", alignItems: "center", backgroundColor: "#FFEBEE", padding: 12, borderRadius: 12 },
-  indisponivelIcon: { fontSize: 24, marginRight: 12 },
-  indisponivelTitle: { fontSize: 14, fontWeight: "bold", color: "#e74c3c" },
-  indisponivelText: { fontSize: 12, color: "#666" },
-  section: { marginBottom: 25 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 12 },
-  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
-  seeAll: { color: "#FF6B6B", fontSize: 14 },
-  descricao: { fontSize: 15, color: "#666", lineHeight: 22 },
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { paddingBottom: 100 },
+  imageContainer: { position: "relative", height: 320, backgroundColor: colors.card },
+  imagem: { width: "100%", height: "100%", resizeMode: "cover" },
+  imageOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 100,
+    backgroundColor: "transparent",
+  },
+  backButton: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 40,
+    left: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  backIcon: { color: colors.white, fontSize: 22, fontWeight: "bold" },
+  favoriteButton: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? 50 : 40,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  favoriteIcon: { fontSize: 20 },
+  promoBadge: {
+    position: "absolute",
+    bottom: 60,
+    right: 20,
+    backgroundColor: colors.danger,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  promoBadgeText: { color: colors.white, fontWeight: "bold", fontSize: 14 },
+  imageBottomInfo: {
+    position: "absolute",
+    bottom: 16,
+    left: 20,
+  },
+  imagePrice: { fontSize: 28, fontWeight: "bold", color: colors.white, textShadowColor: "rgba(0,0,0,0.5)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
+  content: { padding: spacing.xl },
+  headerInfo: { marginBottom: spacing.md },
+  categoriaBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginBottom: spacing.sm,
+  },
+  categoriaText: { fontSize: 12, fontWeight: "600" },
+  nome: { fontSize: 26, fontWeight: "bold", color: colors.text },
+  ratingSection: { flexDirection: "row", alignItems: "center", marginBottom: spacing.lg },
+  ratingText: { marginLeft: 8, fontSize: 14, color: colors.textSecondary },
+  priceSection: { marginBottom: spacing.lg },
+  priceCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: colors.primary + "08",
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+  },
+  precoOriginal: { fontSize: 14, color: colors.textLight, textDecorationLine: "line-through" },
+  preco: { fontSize: 30, fontWeight: "bold", color: colors.primary },
+  economiaBadge: {
+    backgroundColor: colors.success + "20",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  economiaText: { fontSize: 12, color: colors.success, fontWeight: "600" },
+  statusSection: { marginBottom: spacing.xl },
+  disponivelCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.success + "10",
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+  },
+  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success, marginRight: 12 },
+  disponivelTitle: { fontSize: 14, fontWeight: "bold", color: colors.success },
+  disponivelText: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  indisponivelCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.danger + "10",
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+  },
+  statusDotIndisponivel: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.danger, marginRight: 12 },
+  indisponivelTitle: { fontSize: 14, fontWeight: "bold", color: colors.danger },
+  indisponivelText: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  section: { marginBottom: spacing.xl },
+  sectionTitle: { fontSize: 17, fontWeight: "bold", color: colors.text, marginBottom: spacing.md },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.md },
+  descricao: { fontSize: 15, color: colors.textSecondary, lineHeight: 23 },
   ingredientesContainer: { flexDirection: "row", flexWrap: "wrap" },
-  ingredienteTag: { backgroundColor: "#f0f0f0", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginRight: 8, marginBottom: 8 },
-  ingredienteText: { fontSize: 12, color: "#666" },
-  infoCard: { backgroundColor: "#fff", borderRadius: 12, padding: 15, elevation: 2 },
-  infoRow: { flexDirection: "row", marginBottom: 15 },
-  infoIcon: { fontSize: 22, marginRight: 15 },
-  infoLabel: { fontSize: 12, color: "#999", marginBottom: 2 },
-  infoValue: { fontSize: 14, color: "#333", fontWeight: "500" },
-  reviewCard: { backgroundColor: "#fff", borderRadius: 12, padding: 12, marginBottom: 10, elevation: 1 },
-  reviewHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  reviewUser: { fontSize: 14, fontWeight: "500", color: "#333" },
-  reviewComment: { fontSize: 14, color: "#666", marginBottom: 8, fontStyle: "italic" },
-  reviewDate: { fontSize: 11, color: "#999" },
-  noReviews: { textAlign: "center", color: "#999", padding: 20 },
-  bottomBar: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#fff", padding: 15, borderTopWidth: 1, borderTopColor: "#eee", gap: 15 },
-  quantidadeContainer: { flexDirection: "row", alignItems: "center", backgroundColor: "#f5f5f5", borderRadius: 12, padding: 5 },
-  quantidadeButton: { width: 45, height: 45, justifyContent: "center", alignItems: "center", backgroundColor: "#fff", borderRadius: 10, elevation: 1 },
-  quantidadeButtonText: { fontSize: 24, fontWeight: "bold", color: "#FF6B6B" },
-  quantidade: { fontSize: 20, fontWeight: "bold", marginHorizontal: 20, color: "#333" },
-  botaoComprar: { flex: 1, backgroundColor: "#FF6B6B", paddingVertical: 15, borderRadius: 12, alignItems: "center", elevation: 3 },
-  botaoComprarTexto: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  ingredienteTag: {
+    backgroundColor: colors.primary + "10",
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  ingredienteText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
+  infoCard: { backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.small },
+  infoRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.sm },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.primary + "10",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  infoIcon: { fontSize: 18 },
+  infoContent: { flex: 1 },
+  infoLabel: { fontSize: 11, color: colors.textLight, marginBottom: 2 },
+  infoValue: { fontSize: 14, color: colors.text, fontWeight: "500" },
+  infoDivider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
+  noReviewsContainer: { alignItems: "center", paddingVertical: 30 },
+  noReviewsIcon: { fontSize: 40, marginBottom: spacing.sm },
+  noReviews: { textAlign: "center", color: colors.textLight, fontSize: 14 },
+  reviewCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    ...shadows.small,
+  },
+  reviewHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm },
+  reviewUserContainer: { flexDirection: "row", alignItems: "center" },
+  reviewAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.primary + "20",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  reviewAvatarText: { fontSize: 14 },
+  reviewUser: { fontSize: 14, fontWeight: "500", color: colors.text },
+  reviewComment: { fontSize: 14, color: colors.textSecondary, marginBottom: spacing.sm, fontStyle: "italic", lineHeight: 20 },
+  reviewDate: { fontSize: 11, color: colors.textLight },
+  bottomBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.white,
+    padding: spacing.lg,
+    paddingBottom: Platform.OS === "ios" ? 30 : spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    ...shadows.medium,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  quantidadeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xs,
+  },
+  quantidadeButton: {
+    width: 44,
+    height: 44,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    ...shadows.small,
+  },
+  quantidadeButtonText: { fontSize: 22, fontWeight: "bold", color: colors.primary },
+  quantidade: { fontSize: 20, fontWeight: "bold", marginHorizontal: spacing.lg, color: colors.text },
+  botaoComprar: {
+    flex: 1,
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: borderRadius.lg,
+    alignItems: "center",
+    marginLeft: spacing.md,
+    ...shadows.medium,
+  },
+  botaoComprarTexto: { color: colors.white, fontSize: 17, fontWeight: "bold" },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { backgroundColor: "#fff", padding: 25, borderRadius: 15, alignItems: "center", elevation: 5 },
-  modalIcon: { fontSize: 50, marginBottom: 10 },
-  modalText: { fontSize: 16, fontWeight: "bold", color: "#333" },
+  modalContent: {
+    backgroundColor: colors.white,
+    padding: spacing.xxl,
+    borderRadius: borderRadius.xl,
+    alignItems: "center",
+    ...shadows.large,
+  },
+  modalIconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: colors.success + "15",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
+  modalIcon: { fontSize: 36 },
+  modalText: { fontSize: 16, fontWeight: "bold", color: colors.text },
 });
