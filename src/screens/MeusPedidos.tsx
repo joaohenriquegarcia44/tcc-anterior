@@ -54,6 +54,7 @@ export default function MeusPedidos({ navigation }: any) {
   function getStatusText(status: string) {
     switch (status) {
       case "pendente": return "⏳ Aguardando retirada";
+      case "pago": return "💳 Pagamento confirmado";
       case "finalizado": return "✅ Finalizado";
       case "cancelado": return "❌ Cancelado";
       default: return status;
@@ -63,6 +64,7 @@ export default function MeusPedidos({ navigation }: any) {
   function getStatusColor(status: string) {
     switch (status) {
       case "pendente": return "#FFB800";
+      case "pago": return "#3498db";
       case "finalizado": return "#27ae60";
       case "cancelado": return "#e74c3c";
       default: return "#999";
@@ -110,7 +112,9 @@ export default function MeusPedidos({ navigation }: any) {
 
   function renderPedido({ item }: any) {
     const isFinalizado = item.status === "finalizado";
-    const podeAvaliar = isFinalizado && !item.avaliado; // 🔥 CAMPO VERIFICADO
+    const isPago = item.status === "pago";
+    const podeAvaliar = isFinalizado && !item.avaliado;
+    const podeExcluir = isFinalizado || isPago;
 
     return (
       <TouchableOpacity style={styles.card} onPress={() => abrirDetalhes(item)} activeOpacity={0.7}>
@@ -125,6 +129,9 @@ export default function MeusPedidos({ navigation }: any) {
         {item.status === "pendente" && (
           <Text style={styles.toque}>👆 Toque para ver o QR Code</Text>
         )}
+        {isPago && (
+          <Text style={styles.toque}>💳 Pagamento confirmado</Text>
+        )}
 
         <View style={styles.actions}>
           {podeAvaliar && (
@@ -132,7 +139,7 @@ export default function MeusPedidos({ navigation }: any) {
               <Text style={styles.buttonText}>⭐ Avaliar</Text>
             </TouchableOpacity>
           )}
-          {isFinalizado && (
+          {podeExcluir && (
             <TouchableOpacity style={styles.excluirButton} onPress={() => excluirPedido(item.id)}>
               <Text style={styles.buttonText}>🗑️ Excluir</Text>
             </TouchableOpacity>

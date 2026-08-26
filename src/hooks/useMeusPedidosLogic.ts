@@ -19,6 +19,7 @@ export function useMeusPedidosLogic(navigation: any) {
       const q = query(
         collection(db, 'pedidos'),
         where('compradorId', '==', auth.currentUser.uid),
+        where("status", "not-in", ["aguardando_pagamento"]),
         orderBy('criadoEm', 'desc')
       );
       const querySnapshot = await getDocs(q);
@@ -47,6 +48,7 @@ export function useMeusPedidosLogic(navigation: any) {
   function getStatusText(status: string) {
     const statusMap: { [key: string]: string } = {
       pendente: '⏳ Pendente',
+      pago: '💳 Pago',
       processando: '⚙️ Processando',
       pronto: '✅ Pronto',
       retirado: '🎉 Retirado',
@@ -59,6 +61,7 @@ export function useMeusPedidosLogic(navigation: any) {
   function getStatusColor(status: string) {
     const colorMap: { [key: string]: string } = {
       pendente: '#FFA500',
+      pago: '#3498db',
       processando: '#3498db',
       pronto: '#27ae60',
       retirado: '#2ecc71',

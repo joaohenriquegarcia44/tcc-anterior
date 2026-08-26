@@ -62,10 +62,7 @@ export default function Home({ navigation }: any) {
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <View style={styles.headerContent}>
-              <Text style={styles.greeting}>Olá! 👋</Text>
-              <Text style={styles.welcomeText}>
-                {auth.currentUser?.displayName?.split('@')[0] || auth.currentUser?.email?.split('@')[0] || "Aluno"}
-              </Text>
+              <Text style={styles.greeting}>Olá, {auth.currentUser?.displayName?.split('@')[0] || auth.currentUser?.email?.split('@')[0] || "Aluno"} 👋</Text>
               <Text style={styles.subtitle}>O que você quer comer hoje?</Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate("Perfil")} style={styles.profileButton}>
@@ -285,13 +282,12 @@ const styles = StyleSheet.create({
   headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.lg,
   },
   headerContent: { flex: 1 },
-  greeting: { fontSize: 16, color: "rgba(255,255,255,0.8)", marginBottom: spacing.xs },
-  welcomeText: { fontSize: 26, fontWeight: "bold", color: colors.white, marginBottom: spacing.xs },
+  greeting: { fontSize: 24, fontWeight: "bold", color: colors.white, marginBottom: spacing.xs },
   subtitle: { fontSize: 14, color: "rgba(255,255,255,0.8)" },
   profileButton: {
     width: 48,
