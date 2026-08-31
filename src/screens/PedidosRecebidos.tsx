@@ -21,7 +21,7 @@ export default function PedidosRecebidos({ navigation }: any) {
       const q = query(
         collection(db, "pedidos"),
         where("vendedorId", "==", auth.currentUser.uid),
-        where("status", "in", ["pendente", "pago"]),
+        where("status", "in", ["pendente", "pago", "homologada"]),
         orderBy("criadoEm", "desc")
       );
       const snapshot = await getDocs(q);
@@ -56,8 +56,9 @@ export default function PedidosRecebidos({ navigation }: any) {
   }
 
   function renderPedido({ item }: any) {
-    // Exibe os itens do pedido
     const itensTexto = item.lanches?.map((l: any) => `${l.quantidade}x ${l.nome}`).join(", ");
+    const isPago = item.status === "pago" || item.status === "pendente";
+    const isHomologada = item.status === "homologada";
 
     return (
       <View style={styles.card}>
@@ -67,12 +68,24 @@ export default function PedidosRecebidos({ navigation }: any) {
         <Text style={styles.itens}>📦 Itens: {itensTexto}</Text>
         <Text style={styles.local}>📍 Retirada: {item.lanches?.[0]?.localRetirada || "Local não informado"}</Text>
         <Text style={styles.total}>Total: R$ {item.total.toFixed(2)}</Text>
-        <TouchableOpacity
-          style={styles.botaoConfirmar}
-          onPress={() => navigation.navigate("LerQRCode", { pedidoId: item.id, codigoNumerico: item.codigoNumerico })}
-        >
-          <Text style={styles.botaoTexto}>✅ Confirmar retirada</Text>
-        </TouchableOpacity>
+
+        {isPago && (
+          <TouchableOpacity
+            style={styles.botaoConfirmar}
+            onPress={() => navigation.navigate("LerQRCode", { pedidoId: item.id, codigoNumerico: item.codigoNumerico, acao: "homologar" })}
+          >
+            <Text style={styles.botaoTexto}>✅ Homologar compra</Text>
+          </TouchableOpacity>
+        )}
+
+        {isHomologada && (
+          <TouchableOpacity
+            style={[styles.botaoConfirmar, { backgroundColor: "#3498db" }]}
+            onPress={() => navigation.navigate("LerQRCode", { pedidoId: item.id, codigoNumerico: item.codigoNumerico, acao: "retirar" })}
+          >
+            <Text style={styles.botaoTexto}>📦 Confirmar retirada</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }

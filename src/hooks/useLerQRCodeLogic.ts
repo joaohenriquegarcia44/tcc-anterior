@@ -7,6 +7,7 @@ import { db, auth } from '../database/database';
 export function useLerQRCodeLogic(route: any, navigation: any) {
   const pedidoId = route.params?.pedidoId;
   const codigoEsperado = route.params?.codigoNumerico;
+  const acao: 'homologar' | 'retirar' = route.params?.acao || 'homologar';
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,11 +23,25 @@ export function useLerQRCodeLogic(route: any, navigation: any) {
       return false;
     }
     const pedido = pedidoSnap.data();
-    if (pedido.status === 'finalizado') {
-      Alert.alert('Aviso', 'Este pedido já foi finalizado');
+
+    if (acao === 'retirar') {
+      if (pedido.status === 'retirado') {
+        Alert.alert('Aviso', 'Este pedido já foi retirado');
+        return false;
+      }
+      if (pedido.status !== 'homologada') {
+        Alert.alert('Aviso', 'Este pedido ainda não foi homologado');
+        return false;
+      }
+      await updateDoc(pedidoRef, { status: 'retirado', retiradoEm: new Date() });
+      return true;
+    }
+
+    if (pedido.status === 'homologada' || pedido.status === 'retirado') {
+      Alert.alert('Aviso', 'Este pedido já foi homologado');
       return false;
     }
-    await updateDoc(pedidoRef, { status: 'finalizado', retiradoEm: new Date() });
+    await updateDoc(pedidoRef, { status: 'homologada' });
     return true;
   }
 
@@ -47,7 +62,8 @@ export function useLerQRCodeLogic(route: any, navigation: any) {
       }
       const sucesso = await finalizarPedido(id);
       if (sucesso) {
-        Alert.alert('Sucesso', 'Pedido confirmado e liberado!');
+        const msg = acao === 'retirar' ? 'Pedido retirado com sucesso!' : 'Compra realizada com sucesso!';
+        Alert.alert('Sucesso', msg);
         navigation.goBack();
       } else {
         setScanned(false);
@@ -86,8 +102,30 @@ export function useLerQRCodeLogic(route: any, navigation: any) {
       setLoading(false);
       return;
     }
-    await updateDoc(pedidoRef, { status: 'finalizado', retiradoEm: new Date() });
-    Alert.alert('Sucesso', 'Pedido confirmado!');
+
+    if (acao === 'retirar') {
+      if (pedido.status === 'retirado') {
+        Alert.alert('Aviso', 'Este pedido já foi retirado');
+        setLoading(false);
+        return;
+      }
+      if (pedido.status !== 'homologada') {
+        Alert.alert('Aviso', 'Este pedido ainda não foi homologado');
+        setLoading(false);
+        return;
+      }
+      await updateDoc(pedidoRef, { status: 'retirado', retiradoEm: new Date() });
+    } else {
+      if (pedido.status === 'homologada' || pedido.status === 'retirado') {
+        Alert.alert('Aviso', 'Este pedido já foi homologado');
+        setLoading(false);
+        return;
+      }
+      await updateDoc(pedidoRef, { status: 'homologada' });
+    }
+
+    const msg = acao === 'retirar' ? 'Pedido retirado com sucesso!' : 'Compra realizada com sucesso!';
+    Alert.alert('Sucesso', msg);
     navigation.goBack();
   }
 
@@ -100,6 +138,7 @@ export function useLerQRCodeLogic(route: any, navigation: any) {
     setCodigoDigitado,
     usandoCodigo,
     setUsandoCodigo,
+    acao,
     handleBarCodeScanned,
     confirmarPorCodigo,
   };

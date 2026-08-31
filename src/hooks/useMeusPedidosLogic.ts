@@ -49,10 +49,10 @@ export function useMeusPedidosLogic(navigation: any) {
     const statusMap: { [key: string]: string } = {
       pendente: '⏳ Pendente',
       pago: '💳 Pago',
+      homologada: '✅ Compra realizada',
       processando: '⚙️ Processando',
       pronto: '✅ Pronto',
       retirado: '🎉 Retirado',
-      finalizado: '🎉 Finalizado',
       cancelado: '❌ Cancelado',
     };
     return statusMap[status] || status;
@@ -62,10 +62,10 @@ export function useMeusPedidosLogic(navigation: any) {
     const colorMap: { [key: string]: string } = {
       pendente: '#FFA500',
       pago: '#3498db',
+      homologada: '#27ae60',
       processando: '#3498db',
       pronto: '#27ae60',
       retirado: '#2ecc71',
-      finalizado: '#2ecc71',
       cancelado: '#e74c3c',
     };
     return colorMap[status] || '#999';

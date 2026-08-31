@@ -55,7 +55,8 @@ export default function MeusPedidos({ navigation }: any) {
     switch (status) {
       case "pendente": return "⏳ Aguardando retirada";
       case "pago": return "💳 Pagamento confirmado";
-      case "finalizado": return "✅ Finalizado";
+      case "homologada": return "✅ Compra realizada";
+      case "retirado": return "🎉 Retirado";
       case "cancelado": return "❌ Cancelado";
       default: return status;
     }
@@ -65,17 +66,18 @@ export default function MeusPedidos({ navigation }: any) {
     switch (status) {
       case "pendente": return "#FFB800";
       case "pago": return "#3498db";
-      case "finalizado": return "#27ae60";
+      case "homologada": return "#27ae60";
+      case "retirado": return "#2ecc71";
       case "cancelado": return "#e74c3c";
       default: return "#999";
     }
   }
 
   function abrirDetalhes(pedido: any) {
-    if (pedido.status === "pendente") {
+    if (pedido.status === "pago") {
       setPedidoSelecionado(pedido);
     } else {
-      Alert.alert("Pedido finalizado", "Este pedido já foi entregue.");
+      Alert.alert("Pedido", "Este pedido não precisa mais de confirmação.");
     }
   }
 
@@ -111,10 +113,11 @@ export default function MeusPedidos({ navigation }: any) {
   }
 
   function renderPedido({ item }: any) {
-    const isFinalizado = item.status === "finalizado";
     const isPago = item.status === "pago";
-    const podeAvaliar = isFinalizado && !item.avaliado;
-    const podeExcluir = isFinalizado || isPago;
+    const isHomologada = item.status === "homologada";
+    const isRetirado = item.status === "retirado";
+    const podeAvaliar = isRetirado && !item.avaliado;
+    const podeExcluir = isRetirado;
 
     return (
       <TouchableOpacity style={styles.card} onPress={() => abrirDetalhes(item)} activeOpacity={0.7}>
@@ -126,11 +129,14 @@ export default function MeusPedidos({ navigation }: any) {
         </View>
         <Text style={styles.data}>Data: {formatarData(item.criadoEm)}</Text>
         <Text style={styles.total}>Total: R$ {item.total.toFixed(2)}</Text>
-        {item.status === "pendente" && (
+        {isPago && (
           <Text style={styles.toque}>👆 Toque para ver o QR Code</Text>
         )}
-        {isPago && (
-          <Text style={styles.toque}>💳 Pagamento confirmado</Text>
+        {isHomologada && (
+          <Text style={[styles.toque, { color: "#27ae60" }]}>✅ Compra realizada - Aguardando retirada</Text>
+        )}
+        {isRetirado && (
+          <Text style={[styles.toque, { color: "#27ae60" }]}>🎉 Pedido retirado</Text>
         )}
 
         <View style={styles.actions}>

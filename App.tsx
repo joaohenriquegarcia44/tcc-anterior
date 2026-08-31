@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import StackNavigator from "./src/navigation/StackNavigator";
-import { CartProvider } from "./src/services/CartContext";
+import { CartProvider, CartContext } from "./src/services/CartContext";
 import { auth } from "./src/database/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { ActivityIndicator, View, Text, Alert } from "react-native";
@@ -10,9 +10,7 @@ import { useURL } from "expo-linking";
 export default function App() {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
-  const url = useURL(); // Hook para deep links
 
-  // Monitora o estado de autenticação (Firebase Web SDK)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -20,22 +18,6 @@ export default function App() {
     });
     return unsubscribe;
   }, []);
-
-  // Lida com deep links (pagamentos, etc.)
-  useEffect(() => {
-    if (url) {
-      console.log("🔗 Deep link recebido:", url);
-      const urlParts = url.split("?");
-      const queryParams = new URLSearchParams(urlParts[1]);
-      const status = queryParams.get("status");
-
-      if (status === "approved") {
-        Alert.alert("Pagamento aprovado!", "Seu pedido foi confirmado e será preparado.");
-      } else if (status === "rejected") {
-        Alert.alert("Pagamento recusado", "Tente novamente ou escolha outra forma de pagamento.");
-      }
-    }
-  }, [url]);
 
   if (loading) {
     return (
@@ -49,8 +31,31 @@ export default function App() {
   return (
     <CartProvider>
       <NavigationContainer>
-        <StackNavigator />
+        <AppContent />
       </NavigationContainer>
     </CartProvider>
   );
+}
+
+function AppContent() {
+  const url = useURL();
+  const { limparCarrinho } = useContext(CartContext);
+
+  useEffect(() => {
+    if (url) {
+      console.log("Deep link recebido:", url);
+      const urlParts = url.split("?");
+      const queryParams = new URLSearchParams(urlParts[1]);
+      const status = queryParams.get("status");
+
+      if (status === "approved") {
+        limparCarrinho();
+        Alert.alert("Pagamento aprovado!", "Seu pedido foi confirmado e será preparado.");
+      } else if (status === "rejected") {
+        Alert.alert("Pagamento recusado", "Tente novamente ou escolha outra forma de pagamento.");
+      }
+    }
+  }, [url]);
+
+  return <StackNavigator />;
 }

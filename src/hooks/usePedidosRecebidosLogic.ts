@@ -18,7 +18,7 @@ export function usePedidosRecebidosLogic(navigation: any) {
       const q = query(
         collection(db, 'pedidos'),
         where('vendedorId', '==', auth.currentUser.uid),
-        where('status', '!=', 'finalizado'),
+        where('status', 'in', ['pendente', 'pago', 'homologada']),
         orderBy('status'),
         orderBy('criadoEm', 'desc')
       );
