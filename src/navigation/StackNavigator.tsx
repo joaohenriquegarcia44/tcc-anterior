@@ -15,6 +15,7 @@ import LerQRCode from "../screens/LerQRCode";
 import Perfil from "../screens/Perfil";
 import PedidosRecebidos from "../screens/PedidosRecebidos";
 import MeusPedidos from "../screens/MeusPedidos";
+import ExibirQRCode from "../screens/ExibirQRCode";
 import AvaliarPedido from "../screens/AvaliarPedido";
 import GraficoVendas from "../screens/GraficoVendas";
 import PoliticasPrivacidade from "../screens/PoliticasPrivacidade";
@@ -37,6 +38,7 @@ export default function StackNavigator() {
       <Stack.Screen name="Carrinho" component={Carrinho} />
       <Stack.Screen name="ConfirmarPedido" component={ConfirmarPedido} />
       <Stack.Screen name="QRCodePedido" component={QRCodePedido} />
+      <Stack.Screen name="ExibirQRCode" component={ExibirQRCode} options={{ title: "Pagamento PIX" }} />
       <Stack.Screen name="AvaliarProduto" component={AvaliarProduto} />
       <Stack.Screen name="PedidosRecebidos" component={PedidosRecebidos} options={{ title: "Pedidos pendentes" }} />
       <Stack.Screen name="MeusPedidos" component={MeusPedidos} options={{ title: "Meus Pedidos" }} />

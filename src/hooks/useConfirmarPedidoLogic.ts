@@ -7,9 +7,8 @@ import { collection, addDoc, doc, getDoc, updateDoc, increment } from 'firebase/
 export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const dataRecebida = route.params?.dataRetirada;
 
-  const { cart, limparCarrinho } = useContext(CartContext);
-  const [loading, setLoading] = useState(false);
-  const [metodoPagamento, setMetodoPagamento] = useState<string>('presencial');
+  const { cart } = useContext(CartContext);
+  const [metodoPagamento] = useState<string>('pix');
   const [userData, setUserData] = useState<any>({});
   const [pontosUsuario, setPontosUsuario] = useState(0);
   const [usandoPontos, setUsandoPontos] = useState(false);
@@ -209,60 +208,15 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     }
   }
 
-  async function finalizarPedidoPresencial() {
-    if (!auth.currentUser) {
-      Alert.alert('Erro', 'Usuário não autenticado');
-      return;
-    }
-    if (cart.length === 0) {
-      Alert.alert('Erro', 'Carrinho vazio');
-      return;
-    }
-    for (const item of cart) {
-      if (item.userId && item.userId === auth.currentUser.uid) {
-        Alert.alert('Erro', 'Seu pedido contém um lanche que você mesmo vende. Remova-o do carrinho.');
-        return;
-      }
-    }
-
-    setLoading(true);
-    try {
-      const pedidosCriados = await criarPedidoNoFirestore('pendente');
-      const codigoNumerico = pedidosCriados[0].codigoNumerico;
-      Alert.alert(
-        '✅ Pedido Confirmado!',
-        `🔢 Código de retirada: ${codigoNumerico}\n\nApresente o QR Code ou o código ao vendedor.`,
-        [
-          {
-            text: 'Ver QR Code',
-            onPress: () => {
-              limparCarrinho();
-              navigation.replace('QRCodePedido', { pedidos: pedidosCriados });
-            },
-          },
-        ]
-      );
-    } catch (error: any) {
-      console.log('Erro ao finalizar pedido:', error);
-      Alert.alert('Erro', `Não foi possível finalizar o pedido: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const metodosPagamento = [
-    { id: 'presencial', nome: '💰 Pagamento Presencial', descricao: 'Pague na hora da retirada' },
     { id: 'pix', nome: '📱 PIX', descricao: 'Pague via QR Code PIX' },
-    { id: 'credito', nome: '💳 Cartão de Crédito', descricao: 'Pague com cartão na retirada' },
-    { id: 'debito', nome: '💳 Cartão de Débito', descricao: 'Pague com cartão na retirada' },
   ];
 
   const dataRetiradaObj = calcularDataRetirada();
 
   return {
     cart,
-    loading, setLoading,
-    metodoPagamento, setMetodoPagamento,
+    metodoPagamento,
     userData,
     pontosUsuario,
     usandoPontos,
@@ -271,7 +225,6 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     formatarData,
     toggleUsarPontos,
     pagarComPIX,
-    finalizarPedidoPresencial,
     metodosPagamento,
     TOTAL: total,
     DESCONTO_PONTOS: descontoPontos,

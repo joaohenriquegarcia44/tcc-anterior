@@ -395,9 +395,15 @@ export default function Perfil({ navigation }: any) {
             )}
 
             {isAdmin && (
-              <TouchableOpacity style={styles.adminButton} onPress={confirmarLimpeza}>
-                <Ionicons name="trash-bin" size={22} color="#fff" />
-                <Text style={styles.adminButtonText}>Limpar pedidos antigos</Text>
+              <TouchableOpacity style={styles.adminButton} onPress={confirmarLimpeza} activeOpacity={0.8}>
+                <View style={styles.adminButtonIconContainer}>
+                  <Ionicons name="trash-bin" size={20} color="#fff" />
+                </View>
+                <View style={styles.adminButtonTextContainer}>
+                  <Text style={styles.adminButtonText}>Limpar pedidos antigos</Text>
+                  <Text style={styles.adminButtonSubtext}>Remove pedidos com mais de 30 dias</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.6)" />
               </TouchableOpacity>
             )}
 
@@ -540,12 +546,12 @@ export default function Perfil({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8f8f8" },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { paddingTop: 50, paddingBottom: 30, alignItems: "center", borderBottomLeftRadius: 30, borderBottomRightRadius: 30 },
-  avatarWrapper: { position: "relative", marginBottom: 12 },
+  header: { paddingTop: 50, paddingBottom: 30, alignItems: "center", borderBottomLeftRadius: 30, borderBottomRightRadius: 30, overflow: "visible" },
+  avatarWrapper: { position: "relative", marginBottom: 12, overflow: "visible" },
   avatarContainer: { width: 90, height: 90, borderRadius: 45, backgroundColor: "#fff", justifyContent: "center", alignItems: "center", elevation: 5 },
   avatarImage: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: "#fff" },
   avatarText: { fontSize: 40, fontWeight: "bold", color: "#FF6B6B" },
-  cameraIconContainer: { position: "absolute", bottom: 0, right: 5, backgroundColor: "#fff", borderRadius: 20, padding: 5, elevation: 3 },
+  cameraIconContainer: { position: "absolute", bottom: 0, right: 0, backgroundColor: "#fff", borderRadius: 20, padding: 6, elevation: 5, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, zIndex: 10 },
   uploadOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 45, justifyContent: "center", alignItems: "center" },
   nome: { fontSize: 22, fontWeight: "bold", color: "#fff", marginBottom: 4 },
   email: { fontSize: 14, color: "#fff", opacity: 0.9 },
@@ -575,8 +581,11 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, color: "#999", marginTop: 4 },
   vendorButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#FF6B6B", padding: 14, borderRadius: 12, marginBottom: 12, gap: 10 },
   vendorButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  adminButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#6c5ce7", padding: 14, borderRadius: 12, marginBottom: 12, gap: 10 },
+  adminButton: { flexDirection: "row", alignItems: "center", backgroundColor: "#6c5ce7", padding: 16, borderRadius: 16, marginBottom: 12, gap: 12, shadowColor: "#6c5ce7", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
+  adminButtonIconContainer: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.2)", justifyContent: "center", alignItems: "center" },
+  adminButtonTextContainer: { flex: 1 },
   adminButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  adminButtonSubtext: { color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 2 },
   logoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#e74c3c", padding: 14, borderRadius: 12, marginBottom: 20, gap: 10 },
   logoutButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   emptyVendorCard: { backgroundColor: "#fff", borderRadius: 20, padding: 30, alignItems: "center", marginBottom: 20 },

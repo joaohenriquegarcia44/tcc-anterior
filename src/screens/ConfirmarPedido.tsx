@@ -14,24 +14,19 @@ import { colors, spacing, borderRadius, shadows } from "../styles/theme";
 export default function ConfirmarPedido({ route, navigation }: any) {
   const {
     cart,
-    loading,
-    metodoPagamento,
-    setMetodoPagamento,
-    pontosUsuario,
-    usandoPontos,
-    pontosParaUsar,
     processandoPix,
     formatarData,
     toggleUsarPontos,
     pagarComPIX,
-    finalizarPedidoPresencial,
-    metodosPagamento,
     TOTAL,
     DESCONTO_PONTOS,
     TOTAL_FINAL,
     PONTOS_GANHOS,
     dataRetiradaObj,
     REAIS_POR_PONTO,
+    pontosUsuario,
+    usandoPontos,
+    pontosParaUsar,
   } = useConfirmarPedidoLogic(route, navigation);
 
   if (cart.length === 0) {
@@ -47,8 +42,6 @@ export default function ConfirmarPedido({ route, navigation }: any) {
       </View>
     );
   }
-
-  const isPIX = metodoPagamento === "pix";
 
   return (
     <View style={styles.container}>
@@ -116,26 +109,6 @@ export default function ConfirmarPedido({ route, navigation }: any) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>💳 Forma de Pagamento</Text>
-          {metodosPagamento.map((metodo) => (
-            <TouchableOpacity
-              key={metodo.id}
-              style={[styles.pagamentoOption, metodoPagamento === metodo.id && styles.pagamentoOptionSelected]}
-              onPress={() => setMetodoPagamento(metodo.id)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.pagamentoRadio, metodoPagamento === metodo.id && styles.pagamentoRadioSelected]}>
-                {metodoPagamento === metodo.id && <View style={styles.pagamentoRadioDot} />}
-              </View>
-              <View style={styles.pagamentoInfo}>
-                <Text style={styles.pagamentoNome}>{metodo.nome}</Text>
-                <Text style={styles.pagamentoDescricao}>{metodo.descricao}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>📍 Retirada</Text>
           <View style={styles.infoCard}>
             <View style={styles.infoIconContainer}>
@@ -186,33 +159,18 @@ export default function ConfirmarPedido({ route, navigation }: any) {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        {isPIX ? (
-          <TouchableOpacity
-            style={[styles.botaoFinalizar, processandoPix && styles.botaoDisabled]}
-            onPress={pagarComPIX}
-            disabled={processandoPix}
-            activeOpacity={0.8}
-          >
-            {processandoPix ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.botaoFinalizarTexto}>Pagar com PIX • R$ {TOTAL_FINAL.toFixed(2)}</Text>
-            )}
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.botaoFinalizar, loading && styles.botaoDisabled]}
-            onPress={finalizarPedidoPresencial}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text style={styles.botaoFinalizarTexto}>Confirmar Pedido • R$ {TOTAL_FINAL.toFixed(2)}</Text>
-            )}
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={[styles.botaoFinalizar, processandoPix && styles.botaoDisabled]}
+          onPress={pagarComPIX}
+          disabled={processandoPix}
+          activeOpacity={0.8}
+        >
+          {processandoPix ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text style={styles.botaoFinalizarTexto}>Pagar com PIX • R$ {TOTAL_FINAL.toFixed(2)}</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -312,31 +270,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   pontosInfoText: { fontSize: 12, color: colors.textSecondary, marginBottom: 2 },
-  pagamentoOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
-    borderRadius: borderRadius.lg,
-    backgroundColor: colors.background,
-  },
-  pagamentoOptionSelected: { backgroundColor: colors.primary + "10", borderWidth: 1, borderColor: colors.primary + "30" },
-  pagamentoRadio: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: colors.textLight,
-    marginRight: spacing.md,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  pagamentoRadioSelected: { borderColor: colors.primary },
-  pagamentoRadioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
-  pagamentoInfo: { flex: 1 },
-  pagamentoNome: { fontSize: 15, fontWeight: "600", color: colors.text },
-  pagamentoDescricao: { fontSize: 12, color: colors.textLight, marginTop: 2 },
   infoCard: {
     flexDirection: "row",
     alignItems: "center",
