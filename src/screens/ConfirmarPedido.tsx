@@ -23,10 +23,8 @@ export default function ConfirmarPedido({ route, navigation }: any) {
     TOTAL_FINAL,
     PONTOS_GANHOS,
     dataRetiradaObj,
-    REAIS_POR_PONTO,
-    pontosUsuario,
+    descontoDisponivel,
     usandoPontos,
-    pontosParaUsar,
   } = useConfirmarPedidoLogic(route, navigation);
 
   if (cart.length === 0) {
@@ -79,28 +77,30 @@ export default function ConfirmarPedido({ route, navigation }: any) {
             </View>
             <View style={styles.fidelidadeInfo}>
               <Text style={styles.fidelidadeTitle}>Programa Fidelidade</Text>
-              <Text style={styles.fidelidadePontos}>{pontosUsuario} pontos</Text>
-              <Text style={styles.fidelidadeDescricao}>
-                Cada R$ {REAIS_POR_PONTO} = 1 ponto | 10 pontos = R$1 de desconto
+              <Text style={styles.fidelidadePontos}>
+                R$ {descontoDisponivel.toFixed(2)} de crédito disponível
               </Text>
-              {pontosUsuario > 0 && (
+              <Text style={styles.fidelidadeDescricao}>
+                Ganhe créditos a cada compra (cada vendedor define sua bonificação).
+              </Text>
+              {descontoDisponivel > 0 && (
                 <TouchableOpacity
                   style={[styles.usarPontosButton, usandoPontos && styles.usarPontosButtonActive]}
                   onPress={toggleUsarPontos}
                   activeOpacity={0.7}
                 >
                   <Text style={styles.usarPontosButtonText}>
-                    {usandoPontos ? "❌ Cancelar uso de pontos" : "🎁 Usar meus pontos"}
+                    {usandoPontos ? "❌ Cancelar uso de crédito" : "🎁 Usar meu crédito"}
                   </Text>
                 </TouchableOpacity>
               )}
               {usandoPontos && (
                 <View style={styles.pontosInfo}>
                   <Text style={styles.pontosInfoText}>
-                    Usando {pontosParaUsar} pontos → Desconto de R$ {DESCONTO_PONTOS.toFixed(2)}
+                    Desconto aplicado de R$ {DESCONTO_PONTOS.toFixed(2)}
                   </Text>
                   <Text style={styles.pontosInfoText}>
-                    Após a compra: {pontosUsuario - pontosParaUsar + PONTOS_GANHOS} pontos
+                    Você ganhará R$ {PONTOS_GANHOS.toFixed(2)} de crédito nesta compra
                   </Text>
                 </View>
               )}

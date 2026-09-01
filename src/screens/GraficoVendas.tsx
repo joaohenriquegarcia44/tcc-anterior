@@ -18,7 +18,6 @@ export default function GraficoVendas({ navigation }: any) {
     vendas,
     loading,
     tooltip,
-    setTooltip,
     labels,
     valores,
     totalSales,
@@ -34,6 +33,25 @@ export default function GraficoVendas({ navigation }: any) {
         <Text style={styles.titulo}>Vendas (30 dias)</Text>
       </View>
 
+      {loading && (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#FF6B6B" />
+          <Text style={styles.loadingText}>Carregando vendas...</Text>
+        </View>
+      )}
+
+      {!loading && vendas.length === 0 && (
+        <View style={styles.center}>
+          <Text style={styles.emptyIcon}>📊</Text>
+          <Text style={styles.emptyTitle}>Nenhuma venda nos últimos 30 dias</Text>
+          <Text style={styles.emptyText}>
+            As vendas serão exibidas aqui assim que você homologar e retirar pedidos.
+          </Text>
+        </View>
+      )}
+
+      {!loading && vendas.length > 0 && (
+      <>
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>Resumo</Text>
         <View style={styles.summaryRow}>
@@ -71,9 +89,7 @@ export default function GraficoVendas({ navigation }: any) {
           },
         }}
         onDataPointClick={(data: any) => {
-          if (hideTimeout.current) clearTimeout(hideTimeout.current as any);
-          setTooltip({ visible: true, x: data.x, y: data.y, value: data.value, label: labels[data.index] });
-          hideTimeout.current = setTimeout(() => setTooltip(t => ({ ...t, visible: false })), 2500) as any;
+          showTooltip(data, labels);
         }}
         verticalLabelRotation={45}
         showBarTops={true}
@@ -89,6 +105,8 @@ export default function GraficoVendas({ navigation }: any) {
           </View>
         )}
       </View>
+      </>
+      )}
     </ScrollView>
   );
 }
@@ -97,7 +115,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8f8f8", padding: 16 },
   header: { flexDirection: "row", alignItems: "center", marginBottom: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
   titulo: { fontSize: 18, fontWeight: "bold", marginLeft: 16 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40 },
+  loadingText: { marginTop: 10, fontSize: 14, color: "#666" },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyTitle: { fontSize: 16, fontWeight: "bold", color: "#333", textAlign: "center", marginBottom: 8 },
+  emptyText: { fontSize: 13, color: "#666", textAlign: "center" },
   summaryCard: {
     backgroundColor: "#fff",
     borderRadius: 12,

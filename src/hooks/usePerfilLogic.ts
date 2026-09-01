@@ -197,10 +197,16 @@ export function usePerfilLogic(navigation: any) {
   }
 
   async function limparPedidosAntigos() {
+    if (!auth.currentUser) return;
     const dataLimite = new Date();
     dataLimite.setDate(dataLimite.getDate() - 30);
     try {
-      const q = query(collection(db, 'pedidos'), where('status', 'in', ['finalizado', 'cancelado']), where('criadoEm', '<', dataLimite));
+      const q = query(
+        collection(db, 'pedidos'),
+        where('vendedorId', '==', auth.currentUser.uid),
+        where('status', 'in', ['homologada', 'retirado']),
+        where('criadoEm', '<', dataLimite)
+      );
       const snapshot = await getDocs(q);
       if (snapshot.empty) {
         Alert.alert('Info', 'Não há pedidos antigos para remover.');

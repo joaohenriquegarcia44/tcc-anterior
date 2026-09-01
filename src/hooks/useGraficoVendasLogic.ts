@@ -23,7 +23,7 @@ export function useGraficoVendasLogic(navigation: any) {
       const q = query(
         collection(db, 'pedidos'),
         where('vendedorId', '==', auth.currentUser.uid),
-        where('status', '==', 'finalizado'),
+        where('status', 'in', ['homologada', 'retirado']),
         where('criadoEm', '>=', dataLimite)
       );
       const snapshot = await getDocs(q);

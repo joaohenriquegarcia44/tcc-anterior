@@ -12,9 +12,11 @@ import {
   StatusBar,
   ActivityIndicator,
   Dimensions,
+  Modal,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { collection, getDocs, deleteDoc, doc, query, where } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, where, updateDoc } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import { getDoc } from "firebase/firestore";
 import { colors, spacing, borderRadius, shadows } from "../styles/theme";
@@ -27,6 +29,10 @@ export default function PainelVendedor({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [modalBonificacao, setModalBonificacao] = useState(false);
+  const [reaisGasto, setReaisGasto] = useState("5");
+  const [reaisDesconto, setReaisDesconto] = useState("0.5");
+  const [salvandoBonificacao, setSalvandoBonificacao] = useState(false);
 
   useEffect(() => {
     verificarPermissao();
@@ -81,6 +87,54 @@ export default function PainelVendedor({ navigation }: any) {
     await buscarLanches();
     setRefreshing(false);
   };
+
+  async function carregarBonificacao() {
+    if (!auth.currentUser) return;
+    try {
+      const userRef = doc(db, "usuarios", auth.currentUser.uid);
+      const userSnap = await getDoc(userRef);
+      const bonificacao = userSnap.data()?.bonificacao;
+      if (bonificacao) {
+        setReaisGasto(String(bonificacao.reaisGasto ?? 5));
+        setReaisDesconto(String(bonificacao.reaisDesconto ?? 0.5));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function abrirBonificacao() {
+    carregarBonificacao();
+    setModalBonificacao(true);
+  }
+
+  async function salvarBonificacao() {
+    if (!auth.currentUser) return;
+    const gasto = parseFloat(reaisGasto.replace(",", "."));
+    const desconto = parseFloat(reaisDesconto.replace(",", "."));
+    if (isNaN(gasto) || gasto <= 0) {
+      Alert.alert("Erro", "Informe um valor de gasto válido maior que zero");
+      return;
+    }
+    if (isNaN(desconto) || desconto < 0) {
+      Alert.alert("Erro", "Informe um valor de desconto válido");
+      return;
+    }
+    setSalvandoBonificacao(true);
+    try {
+      const userRef = doc(db, "usuarios", auth.currentUser.uid);
+      await updateDoc(userRef, {
+        bonificacao: { reaisGasto: gasto, reaisDesconto: desconto },
+      });
+      Alert.alert("Sucesso", "Bonificação atualizada com sucesso!");
+      setModalBonificacao(false);
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Não foi possível salvar a bonificação");
+    } finally {
+      setSalvandoBonificacao(false);
+    }
+  }
 
   const deletarLanche = (id: string) => {
     Alert.alert("Excluir", "Deseja excluir este lanche?", [
@@ -200,6 +254,67 @@ export default function PainelVendedor({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity style={styles.botaoBonificacao} onPress={abrirBonificacao}>
+          <Text style={styles.botaoTexto}>🎁 Bonificação</Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={modalBonificacao}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalBonificacao(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>🎁 Configurar Bonificação</Text>
+              <Text style={styles.modalSubtitle}>
+                Defina quanto o cliente ganha de desconto a cada valor gasto nos seus lanches.
+              </Text>
+
+              <Text style={styles.label}>A cada R$ gasto</Text>
+              <TextInput
+                style={styles.input}
+                value={reaisGasto}
+                onChangeText={setReaisGasto}
+                keyboardType="numeric"
+                placeholder="Ex: 5"
+              />
+
+              <Text style={styles.label}>gera R$ de desconto</Text>
+              <TextInput
+                style={styles.input}
+                value={reaisDesconto}
+                onChangeText={setReaisDesconto}
+                keyboardType="numeric"
+                placeholder="Ex: 0,5"
+              />
+
+              <Text style={styles.modalHint}>
+                Ex: a cada R$ {reaisGasto || "X"} gasto, o cliente acumula R$ {reaisDesconto || "Y"} de desconto de fidelidade.
+              </Text>
+
+              <TouchableOpacity
+                style={[styles.modalButton, salvandoBonificacao && styles.botaoDisabled]}
+                onPress={salvarBonificacao}
+                disabled={salvandoBonificacao}
+              >
+                {salvandoBonificacao ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Salvar</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalCancel}
+                onPress={() => setModalBonificacao(false)}
+                disabled={salvandoBonificacao}
+              >
+                <Text style={styles.modalCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
         {lanches.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🍔</Text>
@@ -255,6 +370,28 @@ const styles = StyleSheet.create({
   botaoGrafico: { flex: 1, minWidth: "48%", backgroundColor: "#9b59b6", paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
   botaoConfigurarEntrega: { flex: 1, minWidth: "48%", backgroundColor: colors.warning, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
   botaoTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
+
+  botaoBonificacao: {
+    flex: 1,
+    backgroundColor: "#FF9F40",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    elevation: 2,
+    marginBottom: 16,
+  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
+  modalContainer: { backgroundColor: "#fff", borderRadius: 16, padding: 24 },
+  modalTitle: { fontSize: 20, fontWeight: "bold", color: "#333", marginBottom: 8, textAlign: "center" },
+  modalSubtitle: { fontSize: 13, color: "#666", textAlign: "center", marginBottom: 16 },
+  label: { fontSize: 14, color: "#666", marginBottom: 8, marginTop: 12, fontWeight: "500" },
+  input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: "#fff", color: "#333" },
+  modalHint: { fontSize: 12, color: "#999", marginTop: 14, fontStyle: "italic", textAlign: "center" },
+  modalButton: { backgroundColor: "#FF9F40", marginTop: 20, paddingVertical: 14, borderRadius: 12, alignItems: "center", elevation: 2 },
+  modalButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
+  modalCancel: { marginTop: 10, paddingVertical: 12, alignItems: "center" },
+  modalCancelText: { color: "#666", fontSize: 14, fontWeight: "500" },
+  botaoDisabled: { opacity: 0.6 },
 
   sectionHeader: { marginTop: 16, marginBottom: 12, paddingHorizontal: 4 },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 4 },

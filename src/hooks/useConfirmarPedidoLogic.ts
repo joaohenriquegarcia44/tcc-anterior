@@ -2,7 +2,7 @@ import { useContext, useState, useEffect, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { CartContext } from '../services/CartContext';
 import { auth, db } from '../database/database';
-import { collection, addDoc, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const dataRecebida = route.params?.dataRetirada;
@@ -12,31 +12,70 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const [userData, setUserData] = useState<any>({});
   const [pontosUsuario, setPontosUsuario] = useState(0);
   const [usandoPontos, setUsandoPontos] = useState(false);
-  const [pontosParaUsar, setPontosParaUsar] = useState(0);
   const [processandoPix, setProcessandoPix] = useState(false);
+  const [configsVendedores, setConfigsVendedores] = useState<Record<string, { reaisGasto: number; reaisDesconto: number }>>({});
+  const [creditosFidelidade, setCreditosFidelidade] = useState<Record<string, number>>({});
 
-  // 🔥 Constantes
+  // 🔥 Constantes (fallback padrão)
   const REAIS_POR_PONTO = 5;
+  const DESCONTO_PADRAO = 0.5;
+
+  // 🔥 Vendedores envolvidos neste pedido
+  const vendedoresIds = useMemo(() => Array.from(new Set(cart.map((i: any) => i.userId).filter(Boolean))) as string[], [cart]);
+
+  // 🔥 Subtotal por vendedor
+  const subtotalPorVendedor = useMemo(() => {
+    const map: Record<string, number> = {};
+    cart.forEach((item: any) => {
+      if (!item.userId) return;
+      const preco = typeof item.preco === 'number' ? item.preco : parseFloat(item.preco);
+      const qtd = typeof item.quantidade === 'number' ? item.quantidade : parseInt(item.quantidade);
+      map[item.userId] = (map[item.userId] || 0) + (isNaN(preco) ? 0 : preco) * (isNaN(qtd) ? 0 : qtd);
+    });
+    return map;
+  }, [cart]);
 
   // 🔥 Valores derivados do carrinho (calculados com useMemo para performance e reatividade)
   const total = useMemo(() => {
-    const soma = cart.reduce((sum, item) => {
-      const preco = typeof item.preco === 'number' ? item.preco : parseFloat(item.preco);
-      const qtd = typeof item.quantidade === 'number' ? item.quantidade : parseInt(item.quantidade);
-      return sum + (isNaN(preco) ? 0 : preco) * (isNaN(qtd) ? 0 : qtd);
-    }, 0);
+    const soma = Object.values(subtotalPorVendedor).reduce((s, v) => s + (v || 0), 0);
     console.log('📊 Total calculado:', soma); // 🔍 Log para debug (pode remover depois)
     return soma;
-  }, [cart]);
+  }, [subtotalPorVendedor]);
+
+  // 🔥 Bonificação (desconto de fidelidade) disponível por vendedor
+  const descontoDisponivelPorVendedor = useMemo(() => {
+    const map: Record<string, number> = {};
+    vendedoresIds.forEach((vendedorId: string) => {
+      const config = configsVendedores[vendedorId] || { reaisGasto: REAIS_POR_PONTO, reaisDesconto: DESCONTO_PADRAO };
+      const subtotal = subtotalPorVendedor[vendedorId] || 0;
+      const credit = creditosFidelidade[vendedorId] || 0;
+      map[vendedorId] = Math.min(credit, subtotal);
+    });
+    return map;
+  }, [vendedoresIds, configsVendedores, creditosFidelidade, subtotalPorVendedor]);
+
+  const descontoDisponivel = useMemo(() => Object.values(descontoDisponivelPorVendedor).reduce((s, v) => s + (v || 0), 0), [descontoDisponivelPorVendedor]);
 
   const descontoPontos = useMemo(() => {
     if (!usandoPontos) return 0;
-    return Math.min(total, pontosParaUsar * 0.10);
-  }, [usandoPontos, total, pontosParaUsar]);
+    return Math.min(total, descontoDisponivel);
+  }, [usandoPontos, total, descontoDisponivel]);
+
+  // 🔥 Pontos (R$ de crédito) que o cliente ganhará nesta compra por vendedor
+  const bonificacaoGanhadaPorVendedor = useMemo(() => {
+    const map: Record<string, number> = {};
+    vendedoresIds.forEach((vendedorId: string) => {
+      const config = configsVendedores[vendedorId] || { reaisGasto: REAIS_POR_PONTO, reaisDesconto: DESCONTO_PADRAO };
+      const subtotal = subtotalPorVendedor[vendedorId] || 0;
+      map[vendedorId] = Math.floor(subtotal / config.reaisGasto) * config.reaisDesconto;
+    });
+    return map;
+  }, [vendedoresIds, configsVendedores, subtotalPorVendedor]);
+
+  const pontosGanhos = useMemo(() => Object.values(bonificacaoGanhadaPorVendedor).reduce((s, v) => s + (v || 0), 0), [bonificacaoGanhadaPorVendedor]);
 
   const totalComDesconto = useMemo(() => total - descontoPontos, [total, descontoPontos]);
   const totalFinal = useMemo(() => totalComDesconto, [totalComDesconto]);
-  const pontosGanhos = useMemo(() => Math.floor(total / REAIS_POR_PONTO), [total]);
 
   useEffect(() => {
     carregarDadosUsuario();
@@ -50,6 +89,25 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
         const data = userDoc.data();
         setUserData(data);
         setPontosUsuario(data.pontos || 0);
+        const creditos = data.creditosFidelidade || {};
+        setCreditosFidelidade(creditos);
+
+        const configs: Record<string, { reaisGasto: number; reaisDesconto: number }> = {};
+        for (const vendedorId of vendedoresIds) {
+          try {
+            const vendedorDoc = await getDoc(doc(db, 'usuarios', vendedorId));
+            if (vendedorDoc.exists()) {
+              const b = vendedorDoc.data().bonificacao;
+              configs[vendedorId] = {
+                reaisGasto: typeof b?.reaisGasto === 'number' ? b.reaisGasto : REAIS_POR_PONTO,
+                reaisDesconto: typeof b?.reaisDesconto === 'number' ? b.reaisDesconto : DESCONTO_PADRAO,
+              };
+            }
+          } catch (error) {
+            console.log(error);
+          }
+        }
+        setConfigsVendedores(configs);
       }
     } catch (error) {
       console.log(error);
@@ -76,16 +134,9 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
   }
 
   function toggleUsarPontos() {
-    if (pontosUsuario === 0) {
-      Alert.alert('Sem Pontos', 'Você ainda não tem pontos para usar.');
+    if (descontoDisponivel <= 0) {
+      Alert.alert('Sem Crédito', 'Você ainda não tem crédito de fidelidade para usar neste vendedor.');
       return;
-    }
-    if (!usandoPontos) {
-      const maxPontosPossiveis = Math.floor(total / 0.10);
-      const pontosRecomendados = Math.min(pontosUsuario, maxPontosPossiveis);
-      setPontosParaUsar(pontosRecomendados);
-    } else {
-      setPontosParaUsar(0);
     }
     setUsandoPontos(!usandoPontos);
   }
@@ -105,12 +156,16 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
 
     const pedidosCriados = [];
     const dataRetirada = calcularDataRetirada();
-    const pontosGanhosValue = pontosGanhos; // usa o useMemo
     const codigoNumerico = gerarCodigoNumerico();
-    const totalFinalValue = totalFinal;
+
+    const creditosAtualizados = { ...creditosFidelidade };
 
     for (const [vendedorId, itens] of pedidosPorVendedor) {
       const idUnico = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const subtotal = itens.reduce((sum: number, item: any) => sum + (item.preco || 0) * (item.quantidade || 0), 0);
+      const descontoVendedor = usandoPontos ? Math.min(creditosAtualizados[vendedorId] || 0, subtotal) : 0;
+      const incremento = bonificacaoGanhadaPorVendedor[vendedorId] || 0;
+
       const pedido = {
         compradorId: auth.currentUser!.uid,
         compradorNome: userData.nome || auth.currentUser!.email?.split('@')[0],
@@ -123,13 +178,12 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
           imagem: item.imagem,
           localRetirada: item.localRetirada || 'Não informado',
         })),
-        subtotal: itens.reduce((sum: number, item: any) => sum + item.preco * item.quantidade, 0),
-        descontoPontos: descontoPontos / pedidosPorVendedor.size,
-        total: totalFinalValue / pedidosPorVendedor.size,
+        subtotal,
+        descontoPontos: descontoVendedor,
+        total: subtotal - descontoVendedor,
         dataRetirada,
         metodoPagamento,
-        pontosGanhos: pontosGanhosValue,
-        pontosUsados: usandoPontos ? pontosParaUsar : 0,
+        pontosGanhos: incremento,
         status: status,
         qrCode: idUnico,
         codigoNumerico,
@@ -139,11 +193,13 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
       };
       const docRef = await addDoc(collection(db, 'pedidos'), pedido);
       pedidosCriados.push({ ...pedido, id: docRef.id });
+
+      const novoCredito = (creditosAtualizados[vendedorId] || 0) - descontoVendedor + incremento;
+      creditosAtualizados[vendedorId] = novoCredito;
     }
 
     const userRef = doc(db, 'usuarios', auth.currentUser!.uid);
-    const updateData: any = { pontos: increment(pontosGanhosValue) };
-    if (usandoPontos && pontosParaUsar > 0) updateData.pontos = increment(pontosGanhosValue - pontosParaUsar);
+    const updateData: any = { creditosFidelidade: creditosAtualizados };
     await updateDoc(userRef, updateData);
 
     return pedidosCriados;
@@ -220,7 +276,7 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     userData,
     pontosUsuario,
     usandoPontos,
-    pontosParaUsar,
+    descontoDisponivel,
     processandoPix,
     formatarData,
     toggleUsarPontos,
