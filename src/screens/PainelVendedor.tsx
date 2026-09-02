@@ -3,7 +3,7 @@ import {
   View,
   Text,
   FlatList,
-  SectionList,
+  ScrollView,
   StyleSheet,
   Image,
   TouchableOpacity,
@@ -20,6 +20,7 @@ import { collection, getDocs, deleteDoc, doc, query, where, updateDoc } from "fi
 import { db, auth } from "../database/database";
 import { getDoc } from "firebase/firestore";
 import { colors, spacing, borderRadius, shadows } from "../styles/theme";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2; // 2 colunas com margens
@@ -103,8 +104,8 @@ export default function PainelVendedor({ navigation }: any) {
     }
   }
 
-  function abrirBonificacao() {
-    carregarBonificacao();
+  async function abrirBonificacao() {
+    await carregarBonificacao();
     setModalBonificacao(true);
   }
 
@@ -195,13 +196,6 @@ export default function PainelVendedor({ navigation }: any) {
     </View>
   );
 
-  const renderSectionHeader = ({ section: { title, color, icon } }: any) => (
-    <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, { color }]}>{icon} {title}</Text>
-      <View style={[styles.sectionLine, { backgroundColor: color }]} />
-    </View>
-  );
-
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -242,21 +236,47 @@ export default function PainelVendedor({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity style={styles.botaoPedidos} onPress={() => navigation.navigate("PedidosRecebidos")}>
-            <Text style={styles.botaoPedidosTexto}>📦 Pedidos</Text>
+        <View style={styles.actionSection}>
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("PedidosRecebidos")} activeOpacity={0.8}>
+            <View style={[styles.actionIcon, { backgroundColor: "#FF6B6B20" }]}>
+              <Ionicons name="receipt" size={22} color="#FF6B6B" />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Pedidos</Text>
+              <Text style={styles.actionSub}>Ver pedidos recebidos</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.botaoLerQR} onPress={() => navigation.navigate("LerQRCode")}>
-            <Text style={styles.botaoTexto}>📷 QR Code</Text>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("LerQRCode")} activeOpacity={0.8}>
+            <View style={[styles.actionIcon, { backgroundColor: "#3498db20" }]}>
+              <Ionicons name="scan" size={22} color="#3498db" />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>QR Code</Text>
+              <Text style={styles.actionSub}>Escanear pedido</Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.botaoGrafico} onPress={() => navigation.navigate("GraficoVendas")}>
-            <Text style={styles.botaoTexto}>📊 Vendas</Text>
+
+          <TouchableOpacity style={styles.actionCard} onPress={abrirBonificacao} activeOpacity={0.8}>
+            <View style={[styles.actionIcon, { backgroundColor: "#FF9F4020" }]}>
+              <Ionicons name="gift" size={22} color="#FF9F40" />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Fidelidade</Text>
+              <Text style={styles.actionSub}>Configurar bonificação</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("GraficoVendas")} activeOpacity={0.8}>
+            <View style={[styles.actionIcon, { backgroundColor: "#9b59b620" }]}>
+              <Ionicons name="stats-chart" size={22} color="#9b59b6" />
+            </View>
+            <View style={styles.actionInfo}>
+              <Text style={styles.actionTitle}>Vendas</Text>
+              <Text style={styles.actionSub}>Gráfico de vendas</Text>
+            </View>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity style={styles.botaoBonificacao} onPress={abrirBonificacao}>
-          <Text style={styles.botaoTexto}>🎁 Bonificação</Text>
-        </TouchableOpacity>
 
         <Modal
           visible={modalBonificacao}
@@ -325,22 +345,32 @@ export default function PainelVendedor({ navigation }: any) {
             </TouchableOpacity>
           </View>
         ) : (
-          <SectionList
-            sections={sections}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            renderSectionHeader={renderSectionHeader}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#FF6B6B"]} />}
+          <ScrollView
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            ListFooterComponent={
-              <TouchableOpacity style={styles.addButtonFooter} onPress={() => navigation.navigate("CriarLanche")}>
-                <Text style={styles.addButtonFooterText}>+ Novo Lanche</Text>
-              </TouchableOpacity>
-            }
-            numColumns={2}
-            columnWrapperStyle={styles.row}
-          />
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#FF6B6B"]} />}
+            contentContainerStyle={{ paddingBottom: 30 }}
+          >
+            {sections.map((section) => (
+              <View key={section.title} style={styles.sectionWrapper}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, { color: section.color }]}>{section.title}</Text>
+                  <View style={[styles.sectionLine, { backgroundColor: section.color }]} />
+                </View>
+                <FlatList
+                  horizontal
+                  data={section.data.slice(0, 10)}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderItem}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingRight: 16 }}
+                  ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+                />
+              </View>
+            ))}
+            <TouchableOpacity style={styles.addButtonFooter} onPress={() => navigation.navigate("CriarLanche")}>
+              <Text style={styles.addButtonFooterText}>+ Novo Lanche</Text>
+            </TouchableOpacity>
+          </ScrollView>
         )}
       </View>
     </SafeAreaView>
@@ -357,29 +387,27 @@ const styles = StyleSheet.create({
   addButtonHeader: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, justifyContent: "center", alignItems: "center", elevation: 2 },
   addButtonHeaderText: { fontSize: 24, color: "#fff", fontWeight: "bold" },
 
-  buttonGroup: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 24,
-    gap: 10,
-  },
   botaoPedidos: { flex: 1, minWidth: "48%", backgroundColor: colors.secondary, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
   botaoPedidosTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
-  botaoLerQR: { flex: 1, minWidth: "48%", backgroundColor: colors.primary, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
-  botaoGrafico: { flex: 1, minWidth: "48%", backgroundColor: "#9b59b6", paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
-  botaoConfigurarEntrega: { flex: 1, minWidth: "48%", backgroundColor: colors.warning, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
-  botaoTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
 
-  botaoBonificacao: {
-    flex: 1,
-    backgroundColor: "#FF9F40",
-    paddingVertical: 14,
+  actionSection: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginBottom: 8, gap: 10 },
+  actionCard: {
+    width: "48.5%",
+    backgroundColor: colors.white,
     borderRadius: 14,
-    alignItems: "center",
+    padding: 14,
+    gap: 8,
+    marginBottom: 10,
     elevation: 2,
-    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
   },
+  actionIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: "center", alignItems: "center", marginBottom: 6 },
+  actionInfo: { flex: 1 },
+  actionTitle: { fontSize: 15, fontWeight: "bold", color: "#333", marginBottom: 2 },
+  actionSub: { fontSize: 12, color: "#999" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
   modalContainer: { backgroundColor: "#fff", borderRadius: 16, padding: 24 },
   modalTitle: { fontSize: 20, fontWeight: "bold", color: "#333", marginBottom: 8, textAlign: "center" },
@@ -393,16 +421,15 @@ const styles = StyleSheet.create({
   modalCancelText: { color: "#666", fontSize: 14, fontWeight: "500" },
   botaoDisabled: { opacity: 0.6 },
 
-  sectionHeader: { marginTop: 16, marginBottom: 12, paddingHorizontal: 4 },
+  sectionWrapper: { marginBottom: 20 },
+  sectionHeader: { marginTop: 4, marginBottom: 12, paddingHorizontal: 4 },
   sectionTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 4 },
   sectionLine: { height: 3, width: 50, borderRadius: 2, marginTop: 2 },
 
-  row: { justifyContent: "space-between" },
   card: {
-    width: "48%",
+    width: 150,
     backgroundColor: colors.white,
     borderRadius: 16,
-    marginBottom: 16,
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -410,7 +437,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     overflow: "hidden",
   },
-  imagem: { width: "100%", height: 130, resizeMode: "cover" },
+  imagem: { width: 150, height: 100, resizeMode: "cover" },
   cardContent: { padding: 12, gap: 6 },
   nome: { fontSize: 15, fontWeight: "bold", color: "#333" },
   preco: { fontSize: 14, fontWeight: "600", color: "#FF6B6B" },

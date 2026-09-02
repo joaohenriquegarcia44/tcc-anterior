@@ -33,7 +33,7 @@ export default function StackNavigator() {
       <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <Stack.Screen name="CriarLanche" component={CriarLanche} />
       <Stack.Screen name="EditarLanche" component={EditarLanche} />
-      <Stack.Screen name="PainelVendedor" component={PainelVendedor} />
+      <Stack.Screen name="PainelVendedor" component={PainelVendedor} options={{ headerShown: false }} />
       <Stack.Screen name="Produto" component={Produto} />
       <Stack.Screen name="Carrinho" component={Carrinho} />
       <Stack.Screen name="ConfirmarPedido" component={ConfirmarPedido} />

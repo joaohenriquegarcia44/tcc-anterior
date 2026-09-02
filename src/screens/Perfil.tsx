@@ -49,9 +49,6 @@ export default function Perfil({ navigation }: any) {
 
   useEffect(() => {
     carregarDadosUsuario();
-    if (userData.papel === "admin") {
-      carregarDadosVendedor();
-    }
   }, []);
 
   async function carregarDadosUsuario() {
@@ -61,6 +58,9 @@ export default function Perfil({ navigation }: any) {
       const userDoc = await getDoc(userRef);
       if (userDoc.exists()) {
         setUserData(userDoc.data());
+        if (userDoc.data().papel === "admin") {
+          carregarDadosVendedor();
+        }
       } else {
         const newUserData = {
           nome: auth.currentUser.displayName || auth.currentUser.email?.split("@")[0] || "Aluno",
@@ -117,9 +117,28 @@ export default function Perfil({ navigation }: any) {
   const onRefresh = async () => {
     setRefreshing(true);
     await carregarDadosUsuario();
-    if (userData.papel === "admin") await carregarDadosVendedor();
     setRefreshing(false);
   };
+
+  function deletarPedido(pedido: any) {
+    Alert.alert("Excluir pedido", "Deseja apagar este pedido?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Apagar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteDoc(doc(db, "pedidos", pedido.id));
+            setPedidosRecebidos((prev) => prev.filter((p) => p.id !== pedido.id));
+            Alert.alert("Sucesso", "Pedido removido");
+          } catch (error) {
+            console.log(error);
+            Alert.alert("Erro", "Não foi possível apagar o pedido");
+          }
+        },
+      },
+    ]);
+  }
 
   function escolherOpcaoImagem() {
     Alert.alert("Foto de Perfil", "De onde você quer pegar a foto?", [
@@ -394,23 +413,23 @@ export default function Perfil({ navigation }: any) {
             </View>
 
             {isAdmin && (
-              <TouchableOpacity style={styles.vendorButton} onPress={() => navigation.navigate("PainelVendedor")}>
-                <Ionicons name="grid" size={22} color="#fff" />
-                <Text style={styles.vendorButtonText}>Abrir Painel do Vendedor</Text>
-              </TouchableOpacity>
-            )}
+              <View style={styles.adminActionsRow}>
+                <TouchableOpacity style={styles.adminActionCard} onPress={() => navigation.navigate("PainelVendedor")} activeOpacity={0.8}>
+                  <View style={[styles.adminActionIcon, { backgroundColor: "rgba(255,107,107,0.15)" }]}>
+                    <Ionicons name="storefront" size={22} color="#FF6B6B" />
+                  </View>
+                  <Text style={styles.adminActionTitle}>Vendas</Text>
+                  <Text style={styles.adminActionSub}>Painel do vendedor</Text>
+                </TouchableOpacity>
 
-            {isAdmin && (
-              <TouchableOpacity style={styles.adminButton} onPress={confirmarLimpeza} activeOpacity={0.8}>
-                <View style={styles.adminButtonIconContainer}>
-                  <Ionicons name="trash-bin" size={20} color="#fff" />
-                </View>
-                <View style={styles.adminButtonTextContainer}>
-                  <Text style={styles.adminButtonText}>Limpar pedidos antigos</Text>
-                  <Text style={styles.adminButtonSubtext}>Remove pedidos com mais de 30 dias</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.6)" />
-              </TouchableOpacity>
+                <TouchableOpacity style={styles.adminActionCard} onPress={confirmarLimpeza} activeOpacity={0.8}>
+                  <View style={[styles.adminActionIcon, { backgroundColor: "rgba(108,92,231,0.15)" }]}>
+                    <Ionicons name="trash-bin" size={22} color="#6c5ce7" />
+                  </View>
+                  <Text style={styles.adminActionTitle}>Limpar</Text>
+                  <Text style={styles.adminActionSub}>Pedidos antigos</Text>
+                </TouchableOpacity>
+              </View>
             )}
 
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -490,6 +509,10 @@ export default function Perfil({ navigation }: any) {
                         </View>
                         <Text style={styles.pedidoDate}>{formatarData(pedido.criadoEm)}</Text>
                         <Text style={styles.pedidoTotal}>Total: R$ {pedido.total}</Text>
+                        <TouchableOpacity style={styles.deletePedidoButton} onPress={() => deletarPedido(pedido)}>
+                          <Ionicons name="trash-bin" size={15} color="#e74c3c" />
+                          <Text style={styles.deletePedidoText}>Apagar pedido</Text>
+                        </TouchableOpacity>
                       </View>
                     ))
                   )}
@@ -585,13 +608,11 @@ const styles = StyleSheet.create({
   statItem: { alignItems: "center" },
   statNumber: { fontSize: 28, fontWeight: "bold", color: "#FF6B6B" },
   statLabel: { fontSize: 12, color: "#999", marginTop: 4 },
-  vendorButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#FF6B6B", padding: 14, borderRadius: 12, marginBottom: 12, gap: 10 },
-  vendorButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  adminButton: { flexDirection: "row", alignItems: "center", backgroundColor: "#6c5ce7", padding: 16, borderRadius: 16, marginBottom: 12, gap: 12, shadowColor: "#6c5ce7", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 },
-  adminButtonIconContainer: { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.2)", justifyContent: "center", alignItems: "center" },
-  adminButtonTextContainer: { flex: 1 },
-  adminButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  adminButtonSubtext: { color: "rgba(255,255,255,0.7)", fontSize: 12, marginTop: 2 },
+  adminActionsRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
+  adminActionCard: { flex: 1, backgroundColor: "#fff", borderRadius: 16, padding: 16, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  adminActionIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: "center", alignItems: "center", marginBottom: 8 },
+  adminActionTitle: { fontSize: 14, fontWeight: "bold", color: "#333", marginBottom: 2 },
+  adminActionSub: { fontSize: 11, color: "#999", textAlign: "center" },
   logoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#e74c3c", padding: 14, borderRadius: 12, marginBottom: 20, gap: 10 },
   logoutButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   emptyVendorCard: { backgroundColor: "#fff", borderRadius: 20, padding: 30, alignItems: "center", marginBottom: 20 },
@@ -620,13 +641,14 @@ const styles = StyleSheet.create({
   statusPending: { color: "#FFB800" },
   pedidoDate: { fontSize: 12, color: "#999", marginBottom: 5 },
   pedidoTotal: { fontSize: 14, fontWeight: "bold", color: "#333" },
+  deletePedidoButton: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", marginTop: 8, gap: 4, paddingVertical: 6, paddingHorizontal: 10, backgroundColor: "#fdecea", borderRadius: 8 },
+  deletePedidoText: { fontSize: 12, color: "#e74c3c", fontWeight: "600" },
   avaliacaoItem: { marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
   avaliacaoHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
   avaliacaoStars: { fontSize: 16, color: "#FFB800" },
   avaliacaoNota: { fontSize: 14, fontWeight: "bold", color: "#FFB800" },
   avaliacaoComentario: { fontSize: 14, color: "#666", marginBottom: 5, fontStyle: "italic" },
   avaliacaoDate: { fontSize: 11, color: "#999" },
-  emptyText: { textAlign: "center", marginTop: 20, fontSize: 14, color: "#999" },
   modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
   modalContent: { backgroundColor: "#fff", borderRadius: 24, padding: 24, width: "90%", maxHeight: "80%" },
   modalTitle: { fontSize: 22, fontWeight: "bold", marginBottom: 24, textAlign: "center" },
