@@ -141,10 +141,6 @@ export default function Produto({ route, navigation }: any) {
         <View style={styles.imageContainer}>
           <Image source={{ uri: produto.imagem }} style={styles.imagem} />
           <View style={styles.imageOverlay} />
-          
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
 
           <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorito}>
             <Text style={styles.favoriteIcon}>{isFavorito ? "❤️" : "🤍"}</Text>
@@ -360,18 +356,6 @@ const styles = StyleSheet.create({
     height: 100,
     backgroundColor: "transparent",
   },
-  backButton: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 40,
-    left: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backIcon: { color: colors.white, fontSize: 22, fontWeight: "bold" },
   favoriteButton: {
     position: "absolute",
     top: Platform.OS === "ios" ? 50 : 40,
