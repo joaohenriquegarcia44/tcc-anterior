@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
-import { query, collection, where, getDocs, deleteDoc, doc, orderBy } from 'firebase/firestore';
+import { query, collection, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../database/database';
 
 export function useMeusPedidosLogic(navigation: any) {
@@ -19,8 +19,7 @@ export function useMeusPedidosLogic(navigation: any) {
       const q = query(
         collection(db, 'pedidos'),
         where('compradorId', '==', auth.currentUser.uid),
-        where("status", "not-in", ["aguardando_pagamento"]),
-        orderBy('criadoEm', 'desc')
+        where("status", "not-in", ["aguardando_pagamento"])
       );
       const querySnapshot = await getDocs(q);
       const pedidosList = querySnapshot.docs.map(doc => ({

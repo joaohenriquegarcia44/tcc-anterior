@@ -8,7 +8,7 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
-import { collection, query, where, getDocs, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import QRCode from "react-native-qrcode-svg";
 
@@ -23,8 +23,7 @@ export default function MeusPedidos({ navigation }: any) {
       const q = query(
         collection(db, "pedidos"),
         where("compradorId", "==", auth.currentUser.uid),
-        where("status", "not-in", ["aguardando_pagamento"]),
-        orderBy("criadoEm", "desc")
+        where("status", "not-in", ["aguardando_pagamento"])
       );
       const snapshot = await getDocs(q);
       const lista = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

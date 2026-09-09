@@ -8,7 +8,7 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "../database/database";
 
 export default function PedidosRecebidos({ navigation }: any) {
@@ -21,8 +21,7 @@ export default function PedidosRecebidos({ navigation }: any) {
       const q = query(
         collection(db, "pedidos"),
         where("vendedorId", "==", auth.currentUser.uid),
-        where("status", "in", ["pendente", "pago", "homologada"]),
-        orderBy("criadoEm", "desc")
+        where("status", "in", ["pendente", "pago", "homologada"])
       );
       const snapshot = await getDocs(q);
       const lista = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

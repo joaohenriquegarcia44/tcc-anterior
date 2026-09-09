@@ -190,49 +190,54 @@ export default function Home({ navigation }: any) {
                 <Text style={styles.emptySubtext}>Tente outra categoria</Text>
               </View>
             ) : (
-              filteredLanches.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.lancheCard}
-                  onPress={() => navigation.navigate("Produto", { produto: item })}
-                  activeOpacity={0.7}
-                >
-                  <Image source={{ uri: item.imagem }} style={styles.lancheImage} />
-                  <View style={styles.lancheInfo}>
-                    <Text style={styles.lancheNome}>{item.nome}</Text>
-                    <Text style={styles.lancheDescricao} numberOfLines={2}>{item.descricao}</Text>
-
-                    <View style={styles.lancheMeta}>
-                      <View style={styles.categoriaBadge}>
-                        <Text style={styles.categoriaBadgeText}>
-                          {item.categorias ? item.categorias.map((c: string) => getCategoriaIcon(c)).join(' ') : (item.categoria === "lanche" ? "🍔" : item.categoria === "bebida" ? "🥤" : "🍰")}
-                        </Text>
-                      </View>
-                      <View style={styles.ratingContainer}>
-                        <Text style={styles.rating}>⭐ {(item.mediaAvaliacao || 0).toFixed(1)}</Text>
-                        <Text style={styles.ratingCount}>({item.totalAvaliacoes || 0})</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.priceRow}>
-                      {item.promocao ? (
-                        <>
-                          <Text style={styles.oldPrice}>R$ {item.preco.toFixed(2)}</Text>
-                          <Text style={styles.lanchePreco}>R$ {(item.precoPromocional || item.preco).toFixed(2)}</Text>
-                        </>
-                      ) : (
-                        <Text style={styles.lanchePreco}>R$ {item.preco.toFixed(2)}</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.carouselScroll}
+              >
+                {filteredLanches.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.carouselCard}
+                    onPress={() => navigation.navigate("Produto", { produto: item })}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.carouselImageWrapper}>
+                      <Image source={{ uri: item.imagem }} style={styles.carouselImage} />
+                      {item.promocao && (
+                        <View style={styles.promoBadgeCard}>
+                          <Text style={styles.promoBadgeTextCard}>OFF</Text>
+                        </View>
                       )}
                     </View>
-                    <Text style={styles.deliveryTime}>⏱️ Pronto em {item.tempoPreparo || "15-25"} min</Text>
-                  </View>
-                  {item.promocao && (
-                    <View style={styles.promoBadgeCard}>
-                      <Text style={styles.promoBadgeTextCard}>OFF</Text>
+                    <View style={styles.carouselInfo}>
+                      <Text style={styles.carouselNome} numberOfLines={1}>{item.nome}</Text>
+                      <Text style={styles.carouselDesc} numberOfLines={2}>{item.descricao}</Text>
+
+                      <View style={styles.carouselMeta}>
+                        <View style={styles.categoriaBadge}>
+                          <Text style={styles.categoriaBadgeText}>
+                            {item.categorias ? item.categorias.map((c: string) => getCategoriaIcon(c)).join(' ') : (item.categoria === "lanche" ? "🍔" : item.categoria === "bebida" ? "🥤" : "🍰")}
+                          </Text>
+                        </View>
+                        <Text style={styles.rating}>⭐ {(item.mediaAvaliacao || 0).toFixed(1)}</Text>
+                      </View>
+
+                      <View style={styles.carouselPriceRow}>
+                        {item.promocao ? (
+                          <>
+                            <Text style={styles.oldPrice}>R$ {item.preco.toFixed(2)}</Text>
+                            <Text style={styles.carouselPreco}>R$ {(item.precoPromocional || item.preco).toFixed(2)}</Text>
+                          </>
+                        ) : (
+                          <Text style={styles.carouselPreco}>R$ {item.preco.toFixed(2)}</Text>
+                        )}
+                      </View>
+                      <Text style={styles.deliveryTime}>⏱️ {item.tempoPreparo || "15-25"} min</Text>
                     </View>
-                  )}
-                </TouchableOpacity>
-              ))
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             )}
           </View>
         </ScrollView>
@@ -342,6 +347,22 @@ const styles = StyleSheet.create({
   resultCount: { fontSize: 12, color: colors.primary, fontWeight: "bold" },
   seeMore: { color: colors.primary, fontSize: 14, fontWeight: "600" },
   promoScroll: { paddingLeft: spacing.xl, paddingRight: spacing.sm },
+  carouselScroll: { paddingLeft: spacing.xl, paddingRight: spacing.sm, gap: 12 },
+  carouselCard: {
+    backgroundColor: colors.card,
+    width: 200,
+    borderRadius: borderRadius.xl,
+    overflow: "hidden",
+    ...shadows.medium,
+  },
+  carouselImageWrapper: { position: "relative" },
+  carouselImage: { width: "100%", height: 120, resizeMode: "cover" },
+  carouselInfo: { padding: spacing.md },
+  carouselNome: { fontSize: 14, fontWeight: "bold", color: colors.text, marginBottom: spacing.xs },
+  carouselDesc: { fontSize: 11, color: colors.textSecondary, marginBottom: spacing.sm, lineHeight: 15 },
+  carouselMeta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm },
+  carouselPriceRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginBottom: spacing.xs },
+  carouselPreco: { fontSize: 16, fontWeight: "bold", color: colors.primary },
   promoCard: {
     backgroundColor: colors.card,
     width: 180,
@@ -364,21 +385,6 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   timeText: { fontSize: 10, color: colors.secondary, fontWeight: "600" },
-  lancheCard: {
-    flexDirection: "row",
-    backgroundColor: colors.card,
-    marginHorizontal: spacing.xl,
-    marginBottom: spacing.md,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    position: "relative",
-    ...shadows.medium,
-  },
-  lancheImage: { width: 105, height: 105, borderRadius: borderRadius.lg },
-  lancheInfo: { flex: 1, marginLeft: spacing.md },
-  lancheNome: { fontSize: 16, fontWeight: "bold", color: colors.text, marginBottom: spacing.xs },
-  lancheDescricao: { fontSize: 12, color: colors.textSecondary, marginBottom: spacing.sm, lineHeight: 17 },
-  lancheMeta: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.sm },
   categoriaBadge: {
     backgroundColor: colors.primary + "10",
     paddingHorizontal: 8,
@@ -386,10 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   categoriaBadgeText: { fontSize: 11, color: colors.primary, fontWeight: "500" },
-  ratingContainer: { flexDirection: "row", alignItems: "center" },
-  rating: { fontSize: 12, fontWeight: "bold", color: colors.warning, marginRight: spacing.xs },
-  ratingCount: { fontSize: 11, color: colors.textLight },
-  lanchePreco: { fontSize: 17, fontWeight: "bold", color: colors.primary },
+  rating: { fontSize: 12, fontWeight: "bold", color: colors.warning },
   deliveryTime: { fontSize: 11, color: colors.secondary, fontWeight: "500" },
   promoBadgeCard: {
     position: "absolute",

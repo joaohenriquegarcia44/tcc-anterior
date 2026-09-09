@@ -8,7 +8,7 @@ export function useLoginLogic(navigation: any, isNavigatorReady: boolean) {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const navigationTimeout = useRef<NodeJS.Timeout>();
+  const navigationTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!isNavigatorReady) return;

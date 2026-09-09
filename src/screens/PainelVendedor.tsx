@@ -14,16 +14,15 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { collection, getDocs, deleteDoc, doc, query, where, updateDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, where, updateDoc, getDoc } from "firebase/firestore";
 import { db, auth } from "../database/database";
-import { getDoc } from "firebase/firestore";
 import { colors, spacing, borderRadius, shadows } from "../styles/theme";
 import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = (width - 48) / 2; // 2 colunas com margens
 
 export default function PainelVendedor({ navigation }: any) {
   const [lanches, setLanches] = useState<any[]>([]);
@@ -34,6 +33,7 @@ export default function PainelVendedor({ navigation }: any) {
   const [reaisGasto, setReaisGasto] = useState("5");
   const [reaisDesconto, setReaisDesconto] = useState("0.5");
   const [salvandoBonificacao, setSalvandoBonificacao] = useState(false);
+  const [menuVisivel, setMenuVisivel] = useState(false);
 
   useEffect(() => {
     verificarPermissao();
@@ -231,52 +231,35 @@ export default function PainelVendedor({ navigation }: any) {
             <Text style={styles.backIcon}>←</Text>
           </TouchableOpacity>
           <Text style={styles.titulo}>Meus Lanches</Text>
-          <TouchableOpacity style={styles.addButtonHeader} onPress={() => navigation.navigate("CriarLanche")}>
-            <Text style={styles.addButtonHeaderText}>+</Text>
+          <TouchableOpacity style={styles.hamburgerButton} onPress={() => setMenuVisivel(!menuVisivel)}>
+            <Ionicons name={menuVisivel ? "close" : "menu"} size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actionSection}>
-          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("PedidosRecebidos")} activeOpacity={0.8}>
-            <View style={[styles.actionIcon, { backgroundColor: "#FF6B6B20" }]}>
-              <Ionicons name="receipt" size={22} color="#FF6B6B" />
-            </View>
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>Pedidos</Text>
-              <Text style={styles.actionSub}>Ver pedidos recebidos</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("LerQRCode")} activeOpacity={0.8}>
-            <View style={[styles.actionIcon, { backgroundColor: "#3498db20" }]}>
-              <Ionicons name="scan" size={22} color="#3498db" />
-            </View>
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>QR Code</Text>
-              <Text style={styles.actionSub}>Escanear pedido</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={abrirBonificacao} activeOpacity={0.8}>
-            <View style={[styles.actionIcon, { backgroundColor: "#FF9F4020" }]}>
-              <Ionicons name="gift" size={22} color="#FF9F40" />
-            </View>
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>Fidelidade</Text>
-              <Text style={styles.actionSub}>Configurar bonificação</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("GraficoVendas")} activeOpacity={0.8}>
-            <View style={[styles.actionIcon, { backgroundColor: "#9b59b620" }]}>
-              <Ionicons name="stats-chart" size={22} color="#9b59b6" />
-            </View>
-            <View style={styles.actionInfo}>
-              <Text style={styles.actionTitle}>Vendas</Text>
-              <Text style={styles.actionSub}>Gráfico de vendas</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+        {menuVisivel && (
+          <View style={styles.dropdownMenu}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisivel(false); navigation.navigate("PedidosRecebidos"); }}>
+              <Ionicons name="receipt" size={20} color="#FF6B6B" />
+              <Text style={styles.menuItemText}>Pedidos Recebidos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisivel(false); navigation.navigate("LerQRCode"); }}>
+              <Ionicons name="scan" size={20} color="#3498db" />
+              <Text style={styles.menuItemText}>Escanear QR Code</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisivel(false); navigation.navigate("GraficoVendas"); }}>
+              <Ionicons name="stats-chart" size={20} color="#9b59b6" />
+              <Text style={styles.menuItemText}>Gráfico de Vendas</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisivel(false); abrirBonificacao(); }}>
+              <Ionicons name="gift" size={20} color="#FF9F40" />
+              <Text style={styles.menuItemText}>Fidelidade</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisivel(false); navigation.navigate("CriarLanche"); }}>
+              <Ionicons name="add-circle" size={20} color={colors.primary} />
+              <Text style={styles.menuItemText}>Criar Lanche</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <Modal
           visible={modalBonificacao}
@@ -384,31 +367,32 @@ const styles = StyleSheet.create({
   backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + "20", justifyContent: "center", alignItems: "center" },
   backIcon: { fontSize: 24, color: colors.primary, fontWeight: "bold" },
   titulo: { fontSize: 22, fontWeight: "bold", color: colors.text, textAlign: "center" },
-  addButtonHeader: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary, justifyContent: "center", alignItems: "center", elevation: 2 },
-  addButtonHeaderText: { fontSize: 24, color: "#fff", fontWeight: "bold" },
+  hamburgerButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: colors.border },
 
   botaoPedidos: { flex: 1, minWidth: "48%", backgroundColor: colors.secondary, paddingVertical: 14, borderRadius: 14, alignItems: "center", elevation: 2 },
   botaoPedidosTexto: { color: "#fff", fontWeight: "bold", fontSize: 14 },
 
-  actionSection: { marginBottom: 8 },
-  actionCard: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
+  dropdownMenu: {
     backgroundColor: colors.white,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    elevation: 2,
+    borderRadius: 12,
+    marginBottom: 16,
+    elevation: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    overflow: "hidden",
   },
-  actionIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: "center", alignItems: "center", marginRight: 12 },
-  actionInfo: { flex: 1 },
-  actionTitle: { fontSize: 15, fontWeight: "bold", color: "#333", marginBottom: 2 },
-  actionSub: { fontSize: 12, color: "#666" },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: 12,
+  },
+  menuItemText: { fontSize: 15, fontWeight: "500", color: colors.text },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
   modalContainer: { backgroundColor: "#fff", borderRadius: 16, padding: 24 },
   modalTitle: { fontSize: 20, fontWeight: "bold", color: "#333", marginBottom: 8, textAlign: "center" },

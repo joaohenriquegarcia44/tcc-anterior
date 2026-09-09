@@ -28,9 +28,8 @@ export default function GraficoVendas({ navigation }: any) {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text>← Voltar</Text>
+          <Text style={styles.titulo}>← Voltar</Text>
         </TouchableOpacity>
-        <Text style={styles.titulo}>Vendas (30 dias)</Text>
       </View>
 
       {loading && (
@@ -73,6 +72,7 @@ export default function GraficoVendas({ navigation }: any) {
         width={screenWidth - 32}
         height={300}
         yAxisLabel="R$ "
+        yAxisSuffix=""
         chartConfig={{
           backgroundColor: "#fff7f7",
           backgroundGradientFrom: "#fff7f7",
@@ -87,9 +87,6 @@ export default function GraficoVendas({ navigation }: any) {
           propsForLabels: {
             fontSize: 12,
           },
-        }}
-        onDataPointClick={(data: any) => {
-          showTooltip(data, labels);
         }}
         verticalLabelRotation={45}
         showBarTops={true}

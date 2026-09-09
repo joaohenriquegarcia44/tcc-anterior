@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
-import { query, collection, where, getDocs, orderBy } from 'firebase/firestore';
+import { query, collection, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../database/database';
 
 export function usePedidosRecebidosLogic(navigation: any) {
@@ -18,9 +18,7 @@ export function usePedidosRecebidosLogic(navigation: any) {
       const q = query(
         collection(db, 'pedidos'),
         where('vendedorId', '==', auth.currentUser.uid),
-        where('status', 'in', ['pendente', 'pago', 'homologada']),
-        orderBy('status'),
-        orderBy('criadoEm', 'desc')
+        where('status', 'in', ['pendente', 'pago', 'homologada'])
       );
       const querySnapshot = await getDocs(q);
       const pedidosList = querySnapshot.docs.map(doc => ({
