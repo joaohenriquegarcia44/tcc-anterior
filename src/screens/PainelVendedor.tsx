@@ -178,12 +178,14 @@ export default function PainelVendedor({ navigation }: any) {
       <Image source={{ uri: item.imagem }} style={styles.imagem} />
       <View style={styles.cardContent}>
         <Text style={styles.nome} numberOfLines={1}>{item.nome}</Text>
-        <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
-        {item.promocao && (
-          <View style={styles.promoTag}>
-            <Text style={styles.promoTagText}>🔥 OFF</Text>
-          </View>
-        )}
+        <View style={styles.priceRow}>
+          <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+          {item.promocao && (
+            <View style={styles.promoTag}>
+              <Text style={styles.promoTagText}>OFF</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.botoes}>
           <TouchableOpacity style={styles.editar} onPress={() => navigation.navigate("EditarLanche", { lanche: item })}>
             <Text style={styles.textoBotao}>Editar</Text>
@@ -341,7 +343,7 @@ export default function PainelVendedor({ navigation }: any) {
                 </View>
                 <FlatList
                   horizontal
-                  data={section.data.slice(0, 10)}
+                  data={section.data.slice(0, 5)}
                   keyExtractor={(item) => item.id}
                   renderItem={renderItem}
                   showsHorizontalScrollIndicator={false}
@@ -364,8 +366,8 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 },
-  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + "20", justifyContent: "center", alignItems: "center" },
-  backIcon: { fontSize: 24, color: colors.primary, fontWeight: "bold" },
+  backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.primary + "15", justifyContent: "center", alignItems: "center" },
+  backIcon: { fontSize: 20, color: colors.primary, fontWeight: "bold" },
   titulo: { fontSize: 22, fontWeight: "bold", color: colors.text, textAlign: "center" },
   hamburgerButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.background, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: colors.border },
 
@@ -426,8 +428,9 @@ const styles = StyleSheet.create({
   cardContent: { padding: 12, gap: 6 },
   nome: { fontSize: 15, fontWeight: "bold", color: "#333" },
   preco: { fontSize: 14, fontWeight: "600", color: "#FF6B6B" },
-  promoTag: { backgroundColor: "#FF6B6B20", alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 },
-  promoTagText: { fontSize: 10, fontWeight: "bold", color: "#FF6B6B" },
+  priceRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  promoTag: { backgroundColor: "#FF6B6B20", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  promoTagText: { fontSize: 9, fontWeight: "bold", color: "#FF6B6B" },
   botoes: { flexDirection: "row", justifyContent: "space-between", gap: 8, marginTop: 8 },
   editar: { flex: 1, backgroundColor: "#3498db", paddingVertical: 8, borderRadius: 8, alignItems: "center" },
   excluir: { flex: 1, backgroundColor: "#e74c3c", paddingVertical: 8, borderRadius: 8, alignItems: "center" },
