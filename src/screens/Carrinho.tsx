@@ -81,12 +81,7 @@ export default function Carrinho({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.titulo}>Meu Carrinho</Text>
-        </View>
+        <Text style={styles.titulo}>Meu Carrinho</Text>
         <TouchableOpacity onPress={limparCarrinho} style={styles.limparButton}>
           <Text style={styles.limparButtonText}>Limpar</Text>
         </TouchableOpacity>
@@ -161,17 +156,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     ...shadows.small,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center" },
-  backButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary + "15",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: spacing.md,
-  },
-  backIcon: { fontSize: 18, color: colors.primary, fontWeight: "bold" },
   titulo: { fontSize: 22, fontWeight: "bold", color: colors.text },
   limparButton: {
     paddingHorizontal: spacing.md,

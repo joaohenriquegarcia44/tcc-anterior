@@ -44,11 +44,7 @@ export default function ConfirmarPedido({ route, navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
         <Text style={styles.titulo}>Revisar Pedido</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
@@ -179,9 +175,8 @@ export default function ConfirmarPedido({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "center",
     padding: spacing.xl,
     paddingTop: Platform.OS === "ios" ? 50 : spacing.xl,
     backgroundColor: colors.white,
@@ -189,15 +184,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     ...shadows.small,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary + "15",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backIcon: { fontSize: 20, color: colors.primary, fontWeight: "bold" },
   titulo: { fontSize: 20, fontWeight: "bold", color: colors.text },
   scrollContent: { paddingBottom: 100 },
   section: {

@@ -19,7 +19,7 @@ import { colors, spacing, borderRadius, shadows } from "../styles/theme";
 
 export default function Produto({ route, navigation }: any) {
   const { produto } = route.params;
-  const { adicionarAoCarrinho } = useContext(CartContext);
+  const { adicionarAoCarrinho, getQuantidadeNoCarrinho } = useContext(CartContext);
   const [quantidade, setQuantidade] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [avaliacoes, setAvaliacoes] = useState<any[]>([]);
@@ -83,8 +83,15 @@ export default function Produto({ route, navigation }: any) {
 
   function incrementar() {
     const limiteEstoque = produto.quantidadeDisponivel || 999;
-    if (quantidade >= limiteEstoque) {
-      Alert.alert("Estoque insuficiente", `Apenas ${limiteEstoque} disponíveis`);
+    const quantidadeNoCarrinho = getQuantidadeNoCarrinho(produto.id);
+    const limiteRestante = limiteEstoque - quantidadeNoCarrinho;
+    
+    if (quantidade >= limiteRestante) {
+      if (limiteRestante <= 0) {
+        Alert.alert("Estoque insuficiente", "Você já adicionou todas as unidades disponíveis ao carrinho");
+      } else {
+        Alert.alert("Estoque insuficiente", `Apenas ${limiteRestante} unidades disponíveis`);
+      }
       return;
     }
     setQuantidade(quantidade + 1);
@@ -100,8 +107,16 @@ export default function Produto({ route, navigation }: any) {
       return;
     }
     const quantidadeEstoque = produto.quantidadeDisponivel || 999;
-    if (quantidade > quantidadeEstoque) {
-      Alert.alert("Estoque insuficiente", `Apenas ${quantidadeEstoque} unidades disponíveis`);
+    const quantidadeNoCarrinho = getQuantidadeNoCarrinho(produto.id);
+    const quantidadeTotal = quantidadeNoCarrinho + quantidade;
+    
+    if (quantidadeTotal > quantidadeEstoque) {
+      const restante = quantidadeEstoque - quantidadeNoCarrinho;
+      if (restante <= 0) {
+        Alert.alert("Estoque insuficiente", "Você já adicionou todas as unidades disponíveis ao carrinho");
+      } else {
+        Alert.alert("Estoque insuficiente", `Apenas ${restante} unidades disponíveis`);
+      }
       return;
     }
     for (let i = 0; i < quantidade; i++) {
@@ -197,7 +212,14 @@ export default function Produto({ route, navigation }: any) {
                 <View>
                   <Text style={styles.disponivelTitle}>Disponível agora</Text>
                   <Text style={styles.disponivelText}>
-                    {produto.quantidadeDisponivel > 0 ? `${produto.quantidadeDisponivel} unidades em estoque` : "Estoque ilimitado"}
+                    {produto.quantidadeDisponivel > 0 ? (() => {
+                      const noCarrinho = getQuantidadeNoCarrinho(produto.id);
+                      const restante = produto.quantidadeDisponivel - noCarrinho;
+                      if (noCarrinho > 0) {
+                        return `${restante} unidades disponíveis (${noCarrinho} no carrinho)`;
+                      }
+                      return `${produto.quantidadeDisponivel} unidades em estoque`;
+                    })() : "Estoque ilimitado"}
                   </Text>
                 </View>
               </View>

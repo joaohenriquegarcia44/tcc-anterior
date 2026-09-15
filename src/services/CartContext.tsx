@@ -10,15 +10,17 @@ interface CartItem {
   imagem: string;
   userId?: string;
   localRetirada?: string;
+  quantidadeDisponivel?: number;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  adicionarAoCarrinho: (produto: any) => void;
+  adicionarAoCarrinho: (produto: any) => boolean;
   removerItem: (id: string) => void;
-  atualizarQuantidade: (id: string, novaQuantidade: number) => void;
+  atualizarQuantidade: (id: string, novaQuantidade: number) => boolean;
   limparCarrinho: () => void;
   totalItens: number;
+  getQuantidadeNoCarrinho: (produtoId: string) => number;
 }
 
 export const CartContext = createContext<CartContextType>({} as CartContextType);
@@ -32,12 +34,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setTotalItens(total);
   }, [cart]);
 
-  function adicionarAoCarrinho(produto: any) {
+  function adicionarAoCarrinho(produto: any): boolean {
     const currentUser = auth.currentUser;
     // Impedir que o vendedor compre seu próprio lanche
     if (currentUser && produto.userId === currentUser.uid) {
       Alert.alert("Ação não permitida", "Você não pode comprar seu próprio lanche.");
-      return;
+      return false;
+    }
+
+    // Verificar estoque disponível
+    const quantidadeEstoque = produto.quantidadeDisponivel;
+    if (quantidadeEstoque !== undefined && quantidadeEstoque !== null) {
+      const itemNoCarrinho = cart.find((item) => item.id === produto.id);
+      const quantidadeAtual = itemNoCarrinho ? itemNoCarrinho.quantidade : 0;
+      
+      if (quantidadeAtual >= quantidadeEstoque) {
+        Alert.alert("Estoque insuficiente", `Apenas ${quantidadeEstoque} unidades disponíveis`);
+        return false;
+      }
     }
 
     setCart((prevCart) => {
@@ -57,28 +71,45 @@ export function CartProvider({ children }: { children: ReactNode }) {
           imagem: produto.imagem,
           userId: produto.userId,
           localRetirada: produto.localRetirada || "Local não informado",
+          quantidadeDisponivel: produto.quantidadeDisponivel,
         },
       ];
     });
+    return true;
   }
 
   function removerItem(id: string) {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   }
 
-  function atualizarQuantidade(id: string, novaQuantidade: number) {
+  function atualizarQuantidade(id: string, novaQuantidade: number): boolean {
     if (novaQuantidade < 1) {
       removerItem(id);
-      return;
+      return true;
+    }
+    
+    // Verificar estoque disponível
+    const itemNoCarrinho = cart.find((item) => item.id === id);
+    if (itemNoCarrinho && itemNoCarrinho.quantidadeDisponivel !== undefined) {
+      if (novaQuantidade > itemNoCarrinho.quantidadeDisponivel) {
+        Alert.alert("Estoque insuficiente", `Apenas ${itemNoCarrinho.quantidadeDisponivel} unidades disponíveis`);
+        return false;
+      }
     }
     
     setCart((prevCart) =>
       prevCart.map((item) => (item.id === id ? { ...item, quantidade: novaQuantidade } : item))
     );
+    return true;
   }
 
   function limparCarrinho() {
     setCart([]);
+  }
+
+  function getQuantidadeNoCarrinho(produtoId: string): number {
+    const item = cart.find((item) => item.id === produtoId);
+    return item ? item.quantidade : 0;
   }
 
   return (
@@ -90,6 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         atualizarQuantidade,
         limparCarrinho,
         totalItens,
+        getQuantidadeNoCarrinho,
       }}
     >
       {children}
