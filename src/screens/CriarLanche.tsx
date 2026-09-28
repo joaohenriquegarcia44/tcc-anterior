@@ -16,6 +16,7 @@ import * as ImagePicker from "expo-image-picker";
 import Checkbox from "expo-checkbox";
 import Constants from 'expo-constants';
 import { useCriarLancheLogic } from "../hooks/useCriarLancheLogic";
+import { colors } from "../styles/theme";
 
 export default function CriarLanche({ navigation }: any) {
   const {
@@ -54,7 +55,7 @@ export default function CriarLanche({ navigation }: any) {
   if (!permissaoVerificada) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text>Verificando permissão...</Text>
       </View>
     );
@@ -71,14 +72,6 @@ export default function CriarLanche({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.titulo}>Criar Lanche</Text>
-          <View style={{ width: 40 }} />
-        </View>
-
         <View style={styles.imageSection}>
           {imagemUrl ? (
             <Image source={{ uri: imagemUrl }} style={styles.previewImage} />
@@ -151,7 +144,7 @@ export default function CriarLanche({ navigation }: any) {
         <View style={styles.section}>
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>🎯 Ativar promoção</Text>
-            <Switch value={promocao} onValueChange={setPromocao} trackColor={{ false: "#ddd", true: "#FF6B6B" }} />
+            <Switch value={promocao} onValueChange={setPromocao} trackColor={{ false: colors.borderLight, true: colors.primary }} />
           </View>
           {promocao && (
             <View>
@@ -162,7 +155,7 @@ export default function CriarLanche({ navigation }: any) {
         </View>
 
         <TouchableOpacity style={[styles.botaoSalvar, loading && styles.botaoDisabled]} onPress={salvarLanche} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.botaoTexto}>🍔 Criar Lanche</Text>}
+          {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.botaoTexto}>🍔 Criar Lanche</Text>}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -170,30 +163,26 @@ export default function CriarLanche({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
+  container: { flex: 1, backgroundColor: colors.background },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#eee" },
-  backButton: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
-  backIcon: { fontSize: 28, color: "#FF6B6B" },
-  titulo: { fontSize: 20, fontWeight: "bold", color: "#333" },
-  imageSection: { backgroundColor: "#fff", alignItems: "center", padding: 20, marginTop: 12 },
+  imageSection: { backgroundColor: colors.card, alignItems: "center", padding: 20, marginTop: 12 },
   previewImage: { width: 200, height: 150, borderRadius: 12, resizeMode: "cover" },
-  imagePlaceholder: { width: 200, height: 150, borderRadius: 12, backgroundColor: "#f5f5f5", justifyContent: "center", alignItems: "center" },
+  imagePlaceholder: { width: 200, height: 150, borderRadius: 12, backgroundColor: colors.surfaceAlt, justifyContent: "center", alignItems: "center" },
   imagePlaceholderIcon: { fontSize: 40, marginBottom: 8 },
-  imagePlaceholderText: { fontSize: 12, color: "#999" },
-  changeImageButton: { backgroundColor: "#f5f5f5", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, marginTop: 12 },
-  changeImageText: { color: "#FF6B6B", fontWeight: "500" },
-  section: { backgroundColor: "#fff", marginTop: 12, paddingHorizontal: 20, paddingVertical: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 16 },
-  label: { fontSize: 14, color: "#666", marginBottom: 8, marginTop: 12, fontWeight: "500" },
-  input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: "#fff", color: "#333" },
+  imagePlaceholderText: { fontSize: 12, color: colors.textLight },
+  changeImageButton: { backgroundColor: colors.surfaceAlt, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, marginTop: 12 },
+  changeImageText: { color: colors.primaryText, fontWeight: "500" },
+  section: { backgroundColor: colors.card, marginTop: 12, paddingHorizontal: 20, paddingVertical: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 },
+  label: { fontSize: 14, color: colors.textSecondary, marginBottom: 8, marginTop: 12, fontWeight: "500" },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: colors.card, color: colors.text },
   textArea: { minHeight: 100, textAlignVertical: "top" },
   switchRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 12 },
-  switchLabel: { fontSize: 16, color: "#333" },
+  switchLabel: { fontSize: 16, color: colors.text },
   checkboxRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  checkboxLabel: { fontSize: 16, marginLeft: 12, color: "#333" },
-  helperText: { fontSize: 11, color: "#999", marginTop: 5 },
-  botaoSalvar: { backgroundColor: "#FF6B6B", margin: 20, paddingVertical: 16, borderRadius: 12, alignItems: "center", elevation: 3 },
+  checkboxLabel: { fontSize: 16, marginLeft: 12, color: colors.text },
+  helperText: { fontSize: 11, color: colors.textLight, marginTop: 5 },
+  botaoSalvar: { backgroundColor: colors.primary, margin: 20, paddingVertical: 16, borderRadius: 12, alignItems: "center", elevation: 3 },
   botaoDisabled: { opacity: 0.7 },
-  botaoTexto: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  botaoTexto: { color: colors.white, fontSize: 18, fontWeight: "bold" },
 });

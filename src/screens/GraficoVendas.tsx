@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import { useGraficoVendasLogic } from "../hooks/useGraficoVendasLogic";
+import { colors } from "../styles/theme";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -26,15 +27,9 @@ export default function GraficoVendas({ navigation }: any) {
   } = useGraficoVendasLogic(navigation);
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.titulo}>← Voltar</Text>
-        </TouchableOpacity>
-      </View>
-
       {loading && (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#FF6B6B" />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Carregando vendas...</Text>
         </View>
       )}
@@ -74,14 +69,14 @@ export default function GraficoVendas({ navigation }: any) {
         yAxisLabel="R$ "
         yAxisSuffix=""
         chartConfig={{
-          backgroundColor: "#fff7f7",
-          backgroundGradientFrom: "#fff7f7",
-          backgroundGradientTo: "#fff",
+          backgroundColor: colors.card,
+          backgroundGradientFrom: colors.card,
+          backgroundGradientTo: colors.surface,
           decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(255, 107, 107, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(60, 60, 60, ${opacity})`,
+          color: (opacity = 1) => `rgba(240, 0, 24, ${opacity})`,
+          labelColor: (opacity = 1) => `rgba(246, 245, 243, ${opacity})`,
           propsForBackgroundLines: {
-            stroke: "#eee",
+            stroke: colors.border,
             strokeDasharray: "0",
           },
           propsForLabels: {
@@ -109,40 +104,38 @@ export default function GraficoVendas({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8", padding: 16 },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 20, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
-  titulo: { fontSize: 18, fontWeight: "bold", marginLeft: 16 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 40 },
-  loadingText: { marginTop: 10, fontSize: 14, color: "#666" },
+  loadingText: { marginTop: 10, fontSize: 14, color: colors.textSecondary },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 16, fontWeight: "bold", color: "#333", textAlign: "center", marginBottom: 8 },
-  emptyText: { fontSize: 13, color: "#666", textAlign: "center" },
+  emptyTitle: { fontSize: 16, fontWeight: "bold", color: colors.text, textAlign: "center", marginBottom: 8 },
+  emptyText: { fontSize: 13, color: colors.textSecondary, textAlign: "center" },
   summaryCard: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
-    shadowColor: "#000",
+    shadowColor: colors.shadow,
     shadowOpacity: 0.08,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
-  summaryTitle: { fontSize: 14, fontWeight: "700", marginBottom: 8, color: "#333" },
+  summaryTitle: { fontSize: 14, fontWeight: "700", marginBottom: 8, color: colors.text },
   summaryRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  summaryLabel: { color: "#666" },
-  summaryValue: { fontWeight: "700", color: "#FF6B6B" },
+  summaryLabel: { color: colors.textSecondary },
+  summaryValue: { fontWeight: "700", color: colors.primaryText },
   chart: { borderRadius: 12, padding: 6, backgroundColor: "transparent" },
   chartContainer: { position: "relative", alignItems: "center", marginBottom: 8 },
   tooltip: {
     position: "absolute",
-    backgroundColor: "rgba(0,0,0,0.85)",
+    backgroundColor: colors.text,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
   },
-  tooltipLabel: { color: "#fff", fontSize: 11, marginBottom: 2 },
-  tooltipValue: { color: "#fff", fontWeight: "700" },
+  tooltipLabel: { color: colors.background, fontSize: 11, marginBottom: 2 },
+  tooltipValue: { color: colors.primaryDark, fontWeight: "700" },
 });

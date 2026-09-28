@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import StarRating from "../components/StarRating";
 import { useAvaliarProdutoLogic } from "../hooks/useAvaliarProdutoLogic";
+import { colors } from "../styles/theme";
 
 export default function AvaliarProduto({ route, navigation }: any) {
   const {
@@ -35,8 +36,6 @@ export default function AvaliarProduto({ route, navigation }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <Text style={styles.titulo}>Avaliar Pedido</Text>
-
         <View style={styles.card}>
           <Text style={styles.produtoNome}>{produto.nome}</Text>
 
@@ -68,18 +67,11 @@ export default function AvaliarProduto({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f8f8",
-  },
-  titulo: {
-    fontSize: 24,
-    fontWeight: "bold",
-    padding: 20,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    backgroundColor: colors.background,
+    padding: 16,
   },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     margin: 15,
     padding: 20,
     borderRadius: 12,
@@ -99,7 +91,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -107,13 +99,13 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   botao: {
-    backgroundColor: "#FF6B6B",
+    backgroundColor: colors.primary,
     padding: 15,
     borderRadius: 10,
     marginTop: 20,
   },
   botaoTexto: {
-    color: "#fff",
+    color: colors.white,
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,

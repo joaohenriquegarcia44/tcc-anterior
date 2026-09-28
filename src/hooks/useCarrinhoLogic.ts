@@ -7,8 +7,15 @@ const TAXA_ENTREGA = 0;
 const DESCONTO_MAXIMO = 5;
 
 export function useCarrinhoLogic(navigation: any) {
-  const { cart, removerItem, atualizarQuantidade, limparCarrinho } = useContext(CartContext);
+  const {
+    cart,
+    removerItem,
+    atualizarQuantidade,
+    limparCarrinho,
+    totalDescontoCombo,
+  } = useContext(CartContext);
   const [subtotal, setSubtotal] = useState(0);
+  const [descontoCombo, setDescontoCombo] = useState(0);
   const [total, setTotal] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dataRetirada, setDataRetirada] = useState<Date>(() => {
@@ -29,8 +36,11 @@ export function useCarrinhoLogic(navigation: any) {
 
   function calcularTotais() {
     const novoSubtotal = cart.reduce((total, item) => total + item.preco * item.quantidade, 0);
+    // o desconto nunca pode passar do subtotal do que sobrou no carrinho
+    const novoDesconto = Math.min(totalDescontoCombo, novoSubtotal);
     setSubtotal(novoSubtotal);
-    setTotal(novoSubtotal + TAXA_ENTREGA);
+    setDescontoCombo(novoDesconto);
+    setTotal(novoSubtotal - novoDesconto + TAXA_ENTREGA);
   }
 
   function aplicarDescontoFidelidade(compras: number) {
@@ -78,6 +88,7 @@ export function useCarrinhoLogic(navigation: any) {
     atualizarQuantidade,
     limparCarrinho,
     subtotal,
+    descontoCombo,
     total,
     isLoggedIn,
     dataRetirada,

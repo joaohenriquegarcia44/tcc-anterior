@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useState, ReactNode, useEffect, useMemo } from "react";
 import { Alert } from "react-native";
 import { auth } from "../database/database";
 
@@ -11,15 +11,19 @@ interface CartItem {
   userId?: string;
   localRetirada?: string;
   quantidadeDisponivel?: number;
+  /** Parcela do desconto de combo que acompanha este item (montado na Home). */
+  descontoCombo?: number;
 }
 
 interface CartContextType {
   cart: CartItem[];
   adicionarAoCarrinho: (produto: any) => boolean;
+  adicionarComboAoCarrinho: (produtos: any[], desconto: number) => boolean;
   removerItem: (id: string) => void;
   atualizarQuantidade: (id: string, novaQuantidade: number) => boolean;
   limparCarrinho: () => void;
   totalItens: number;
+  totalDescontoCombo: number;
   getQuantidadeNoCarrinho: (produtoId: string) => number;
 }
 
@@ -33,6 +37,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const total = cart.reduce((sum, item) => sum + item.quantidade, 0);
     setTotalItens(total);
   }, [cart]);
+
+  const totalDescontoCombo = useMemo(
+    () => cart.reduce((sum, item) => sum + (Number(item.descontoCombo) || 0), 0),
+    [cart]
+  );
 
   function adicionarAoCarrinho(produto: any): boolean {
     const currentUser = auth.currentUser;
@@ -78,10 +87,92 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return true;
   }
 
+  /**
+   * Adiciona um combo inteiro (lanche + bebida + doce) de uma vez.
+   * O desconto é rateado proporcionalmente entre os itens, então a parcela
+   * de cada um continua fazendo sentido se o cliente remover algum depois.
+   */
+  function adicionarComboAoCarrinho(produtos: any[], desconto: number): boolean {
+    const currentUser = auth.currentUser;
+    if (!produtos.length) return false;
+
+    for (const produto of produtos) {
+      if (currentUser && produto.userId === currentUser.uid) {
+        Alert.alert("Ação não permitida", "Você não pode comprar seu próprio lanche.");
+        return false;
+      }
+
+      const estoque = produto.quantidadeDisponivel;
+      if (estoque !== undefined && estoque !== null) {
+        const jaNoCarrinho = cart.find((item) => item.id === produto.id);
+        const atual = jaNoCarrinho ? jaNoCarrinho.quantidade : 0;
+        if (atual >= estoque) {
+          Alert.alert("Estoque insuficiente", `Apenas ${estoque} unidades disponíveis`);
+          return false;
+        }
+      }
+    }
+
+    const subtotal = produtos.reduce((soma, p) => soma + (Number(p.preco) || 0), 0);
+    if (subtotal <= 0) return false;
+
+    const descontoFinal = Math.max(0, Math.min(Number(desconto) || 0, subtotal));
+
+    let acumulado = 0;
+    const parcelas = produtos.map((produto, indice) => {
+      if (indice === produtos.length - 1) {
+        return Math.max(0, descontoFinal - acumulado);
+      }
+      const parcela = descontoFinal * ((Number(produto.preco) || 0) / subtotal);
+      acumulado += parcela;
+      return parcela;
+    });
+
+    setCart((prevCart) => {
+      let novo = [...prevCart];
+
+      produtos.forEach((produto, indice) => {
+        const parcela = parcelas[indice];
+        const existente = novo.find((item) => item.id === produto.id);
+
+        if (existente) {
+          novo = novo.map((item) =>
+            item.id === produto.id
+              ? {
+                  ...item,
+                  quantidade: item.quantidade + 1,
+                  descontoCombo: (item.descontoCombo || 0) + parcela,
+                }
+              : item
+          );
+          return;
+        }
+
+        novo = [
+          ...novo,
+          {
+            id: produto.id,
+            nome: produto.nome,
+            preco: produto.preco,
+            quantidade: 1,
+            imagem: produto.imagem,
+            userId: produto.userId,
+            localRetirada: produto.localRetirada || "Local não informado",
+            quantidadeDisponivel: produto.quantidadeDisponivel,
+            descontoCombo: parcela,
+          },
+        ];
+      });
+
+      return novo;
+    });
+
+    return true;
+  }
+
   function removerItem(id: string) {
     setCart((prevCart) => prevCart.filter((item) => item.id !== id));
   }
-
   function atualizarQuantidade(id: string, novaQuantidade: number): boolean {
     if (novaQuantidade < 1) {
       removerItem(id);
@@ -117,10 +208,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         cart,
         adicionarAoCarrinho,
+        adicionarComboAoCarrinho,
         removerItem,
         atualizarQuantidade,
         limparCarrinho,
         totalItens,
+        totalDescontoCombo,
         getQuantidadeNoCarrinho,
       }}
     >

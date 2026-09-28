@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { query, collection, where, getDocs, getDoc, doc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../database/database';
 import { CartContext } from '../services/CartContext';
+import type { DocumentoFirestore } from "../types/models";
 
 export function useProdutoLogic(route: any, navigation: any) {
   const { produto } = route.params;
@@ -42,7 +43,7 @@ export function useProdutoLogic(route: any, navigation: any) {
         where('produtoId', '==', produto.id)
       );
       const querySnapshot = await getDocs(q);
-      const avaliacoesList = querySnapshot.docs.map(doc => ({
+      const avaliacoesList: DocumentoFirestore[] = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
@@ -88,7 +89,10 @@ export function useProdutoLogic(route: any, navigation: any) {
       ...produto,
       quantidade,
     };
-    adicionarAoCarrinho(produtoComQuantidade);
+    // Retorna false quando o usuário é o anunciante do próprio lanche:
+    // nesse caso o CarrinhoContext já avisa e nada é adicionado, então
+    // não mostramos a confirmação de "adicionado ao carrinho".
+    if (!adicionarAoCarrinho(produtoComQuantidade)) return;
     Alert.alert('Sucesso', `${quantidade}x ${produto.nome} adicionado ao carrinho!`);
     setShowModal(false);
   }

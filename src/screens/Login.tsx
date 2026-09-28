@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,14 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useLoginLogic } from "../hooks/useLoginLogic";
+import BrandLogo from "../components/BrandLogo";
+import PrimaryButton from "../components/PrimaryButton";
+import { colors, borderRadius, spacing, hitSize, shadows } from "../styles/theme";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -39,64 +41,82 @@ export default function Login() {
   } = useLoginLogic(navigation, isNavigatorReady);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
-        <View style={styles.content}>
-          <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoEmoji}>🍔</Text>
-            </View>
-            <Text style={styles.titulo}>IF-aminto</Text>
-            <Text style={styles.subtitulo}>Comida caseira feita por alunos do IFSul</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.brilhoFundo} pointerEvents="none" />
+
+          <View style={styles.topo}>
+            <BrandLogo tamanho={38} />
+            <Text style={styles.frase}>
+              Olá! 👋 Que bom ter você aqui.{'\n'}Peça seu lanche favorito do IF.
+            </Text>
           </View>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputIcon}>📧</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="E-mail"
-                placeholderTextColor="#999"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
+          <View style={styles.cartao}>
+            <Text style={styles.cartaoTitulo}>Bem-vindo de volta</Text>
+            <Text style={styles.cartaoSubtitulo}>Entre para acompanhar seus pedidos e pontos.</Text>
+
+            <View style={styles.campo}>
+              <Text style={styles.rotulo}>E-MAIL</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputIcon}>✉️</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="seu.email@ifsul.edu.br"
+                  placeholderTextColor={colors.textLight}
+                  value={email}
+                  onChangeText={setEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  accessibilityLabel="E-mail"
+                />
+              </View>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputIcon}>🔒</Text>
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Senha"
-                placeholderTextColor="#999"
-                secureTextEntry={!showPassword}
-                value={senha}
-                onChangeText={setSenha}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text style={styles.eyeIcon}>{showPassword ? "👁️" : "👁️‍🗨️"}</Text>
-              </TouchableOpacity>
+            <View style={styles.campo}>
+              <Text style={styles.rotulo}>SENHA</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputIcon}>🔒</Text>
+                <TextInput
+                  style={[styles.input, { flex: 1 }]}
+                  placeholder="Sua senha"
+                  placeholderTextColor={colors.textLight}
+                  secureTextEntry={!showPassword}
+                  value={senha}
+                  onChangeText={setSenha}
+                  accessibilityLabel="Senha"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  hitSlop={10}
+                  style={styles.olho}
+                  accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  <Text style={styles.eyeIcon}>{showPassword ? "👁️" : "🙈"}</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <TouchableOpacity style={styles.esqueciSenha} onPress={esqueciSenha}>
+            <TouchableOpacity style={styles.esqueciSenha} onPress={esqueciSenha} hitSlop={8}>
               <Text style={styles.esqueciSenhaText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.botao, loading && styles.botaoDisabled]}
+            <PrimaryButton
+              title="Entrar"
               onPress={fazerLogin}
+              loading={loading}
               disabled={loading}
-            >
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.botaoTexto}>Entrar</Text>}
-            </TouchableOpacity>
+              icon="→"
+            />
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
@@ -104,7 +124,7 @@ export default function Login() {
               <View style={styles.dividerLine} />
             </View>
 
-            <TouchableOpacity style={styles.botaoCadastro} onPress={irParaCadastro}>
+            <TouchableOpacity style={styles.botaoCadastro} onPress={irParaCadastro} activeOpacity={0.85}>
               <Text style={styles.botaoCadastroTexto}>Criar nova conta</Text>
             </TouchableOpacity>
           </View>
@@ -121,37 +141,95 @@ export default function Login() {
               </Text>
             </Text>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FF6B6B" },
-  scrollContent: { flexGrow: 1, justifyContent: "center" },
-  content: { flex: 1, justifyContent: "space-between", paddingHorizontal: 25, paddingVertical: 50 },
-  logoContainer: { alignItems: "center", marginTop: 40 },
-  logoCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: "#fff", justifyContent: "center", alignItems: "center", marginBottom: 20, elevation: 10 },
-  logoEmoji: { fontSize: 50 },
-  titulo: { fontSize: 36, fontWeight: "bold", color: "#fff", marginBottom: 10 },
-  subtitulo: { fontSize: 14, color: "#fff", textAlign: "center", opacity: 0.9 },
-  formContainer: { backgroundColor: "#fff", borderRadius: 25, padding: 20, elevation: 5 },
-  inputContainer: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#e0e0e0", borderRadius: 12, marginBottom: 15, paddingHorizontal: 15, backgroundColor: "#fafafa" },
-  inputIcon: { fontSize: 20, marginRight: 10 },
-  input: { flex: 1, paddingVertical: 14, fontSize: 16, color: "#333", opacity: 1 },
-  eyeIcon: { fontSize: 20, color: "#999" },
-  esqueciSenha: { alignSelf: "flex-end", marginBottom: 20 },
-  esqueciSenhaText: { color: "#FF6B6B", fontSize: 13 },
-  botao: { backgroundColor: "#FF6B6B", paddingVertical: 15, borderRadius: 12, alignItems: "center", marginBottom: 15 },
-  botaoDisabled: { opacity: 0.7 },
-  botaoTexto: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  divider: { flexDirection: "row", alignItems: "center", marginVertical: 20 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "#e0e0e0" },
-  dividerText: { marginHorizontal: 15, color: "#999", fontSize: 14 },
-  botaoCadastro: { borderWidth: 1, borderColor: "#FF6B6B", paddingVertical: 15, borderRadius: 12, alignItems: "center" },
-  botaoCadastroTexto: { color: "#FF6B6B", fontSize: 16, fontWeight: "500" },
-  footer: { alignItems: "center", marginBottom: 20 },
-  footerText: { color: "#fff", fontSize: 12, textAlign: "center", opacity: 0.8 },
-  footerLink: { textDecorationLine: "underline", fontWeight: "bold" },
+  container: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxl,
+    justifyContent: "center",
+  },
+  brilhoFundo: {
+    position: "absolute",
+    top: -160,
+    left: -80,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: colors.glow,
+  },
+  topo: { marginBottom: spacing.xxl },
+  frase: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: spacing.lg,
+  },
+  cartao: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xxl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    ...shadows.medium,
+  },
+  cartaoTitulo: { color: colors.text, fontSize: 20, fontWeight: "800" },
+  cartaoSubtitulo: {
+    color: colors.textLight,
+    fontSize: 13,
+    marginTop: 4,
+    marginBottom: spacing.xl,
+  },
+  campo: { marginBottom: spacing.lg },
+  rotulo: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    marginBottom: spacing.sm,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.input,
+    minHeight: hitSize.comfortable,
+  },
+  inputIcon: { fontSize: 16, marginRight: spacing.md },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: colors.text,
+    opacity: 1,
+  },
+  olho: { padding: spacing.xs },
+  eyeIcon: { fontSize: 16 },
+  esqueciSenha: { alignSelf: "flex-end", marginBottom: spacing.lg },
+  esqueciSenhaText: { color: colors.primaryText, fontSize: 13, fontWeight: "600" },
+  divider: { flexDirection: "row", alignItems: "center", marginVertical: spacing.xl },
+  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  dividerText: { marginHorizontal: spacing.lg, color: colors.textLight, fontSize: 12 },
+  botaoCadastro: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingVertical: 15,
+    borderRadius: borderRadius.lg,
+    alignItems: "center",
+    backgroundColor: colors.glowSoft,
+  },
+  botaoCadastroTexto: { color: colors.primaryText, fontSize: 15, fontWeight: "700" },
+  footer: { alignItems: "center", marginTop: spacing.xl },
+  footerText: { color: colors.textLight, fontSize: 12, textAlign: "center", lineHeight: 18 },
+  footerLink: { color: colors.primaryText, textDecorationLine: "underline", fontWeight: "700" },
 });

@@ -61,6 +61,23 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     return Math.min(total, descontoDisponivel);
   }, [usandoPontos, total, descontoDisponivel]);
 
+  // 🔥 Desconto de combo (montado na Home) por vendedor
+  const descontoComboPorVendedor = useMemo(() => {
+    const map: Record<string, number> = {};
+    cart.forEach((item: any) => {
+      if (!item.userId) return;
+      const parcela = Number(item.descontoCombo) || 0;
+      if (parcela <= 0) return;
+      map[item.userId] = (map[item.userId] || 0) + parcela;
+    });
+    return map;
+  }, [cart]);
+
+  const descontoCombo = useMemo(
+    () => Object.values(descontoComboPorVendedor).reduce((s, v) => s + (v || 0), 0),
+    [descontoComboPorVendedor]
+  );
+
   // 🔥 Pontos (R$ de crédito) que o cliente ganhará nesta compra por vendedor
   const bonificacaoGanhadaPorVendedor = useMemo(() => {
     const map: Record<string, number> = {};
@@ -75,7 +92,11 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const pontosGanhos = useMemo(() => Object.values(bonificacaoGanhadaPorVendedor).reduce((s, v) => s + (v || 0), 0), [bonificacaoGanhadaPorVendedor]);
 
   const totalComDesconto = useMemo(() => total - descontoPontos, [total, descontoPontos]);
-  const totalFinal = useMemo(() => totalComDesconto, [totalComDesconto]);
+  const descontoComboTotal = useMemo(() => Math.min(descontoCombo, total), [descontoCombo, total]);
+  const totalFinal = useMemo(
+    () => Math.max(0, totalComDesconto - descontoComboTotal),
+    [totalComDesconto, descontoComboTotal]
+  );
 
   useEffect(() => {
     carregarDadosUsuario();
@@ -164,6 +185,7 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
       const idUnico = `${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
       const subtotal = itens.reduce((sum: number, item: any) => sum + (item.preco || 0) * (item.quantidade || 0), 0);
       const descontoVendedor = usandoPontos ? Math.min(creditosAtualizados[vendedorId] || 0, subtotal) : 0;
+      const descontoComboVendedor = Math.min(descontoComboPorVendedor[vendedorId] || 0, subtotal);
       const incremento = bonificacaoGanhadaPorVendedor[vendedorId] || 0;
 
       const pedido = {
@@ -180,7 +202,8 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
         })),
         subtotal,
         descontoPontos: descontoVendedor,
-        total: subtotal - descontoVendedor,
+        descontoCombo: descontoComboVendedor,
+        total: Math.max(0, subtotal - descontoVendedor - descontoComboVendedor),
         dataRetirada,
         metodoPagamento,
         pontosGanhos: incremento,
@@ -284,6 +307,7 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
     metodosPagamento,
     TOTAL: total,
     DESCONTO_PONTOS: descontoPontos,
+    DESCONTO_COMBO: descontoComboTotal,
     TOTAL_COM_DESCONTO: totalComDesconto,
     TOTAL_FINAL: totalFinal,
     PONTOS_GANHOS: pontosGanhos,

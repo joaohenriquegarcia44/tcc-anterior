@@ -2,6 +2,7 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from "../styles/theme";
 
 export default function PoliticasPrivacidade() {
   return (
@@ -63,12 +64,12 @@ export default function PoliticasPrivacidade() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20 },
-  titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#333" },
-  subtitulo: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10, color: "#FF6B6B" },
-  texto: { fontSize: 14, color: "#666", lineHeight: 22, marginBottom: 10 },
-  textoDestaque: { fontSize: 14, fontWeight: "bold", color: "#e74c3c", marginBottom: 10, marginTop: 10 },
-  lista: { fontSize: 14, color: "#666", lineHeight: 22, marginLeft: 16, marginBottom: 6 },
-  ultimaLinha: { fontSize: 12, color: "#999", textAlign: "center", marginTop: 30, marginBottom: 40 },
+  titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: colors.text },
+  subtitulo: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10, color: colors.primaryText },
+  texto: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 10 },
+  textoDestaque: { fontSize: 14, fontWeight: "bold", color: colors.danger, marginBottom: 10, marginTop: 10 },
+  lista: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginLeft: 16, marginBottom: 6 },
+  ultimaLinha: { fontSize: 12, color: colors.textLight, textAlign: "center", marginTop: 30, marginBottom: 40 },
 });

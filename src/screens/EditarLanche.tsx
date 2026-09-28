@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useEditarLancheLogic } from "../hooks/useEditarLancheLogic";
+import { colors } from "../styles/theme";
 
 export default function EditarLanche({ route, navigation }: any) {
   const {
@@ -50,6 +51,23 @@ export default function EditarLanche({ route, navigation }: any) {
     excluirLanche,
   } = useEditarLancheLogic(route, navigation);
 
+  const excluirRef = React.useRef(excluirLanche);
+  excluirRef.current = excluirLanche;
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => excluirRef.current()}
+          style={styles.headerRightButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.headerRightText}>Excluir</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -61,16 +79,6 @@ export default function EditarLanche({ route, navigation }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={styles.titulo}>Editar Lanche</Text>
-          <TouchableOpacity onPress={excluirLanche} style={styles.deleteButton}>
-            <Text style={styles.deleteButtonText}>🗑️</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.imageSection}>
           <Image source={{ uri: imagemUrl }} style={styles.previewImage} />
           <TouchableOpacity
@@ -100,7 +108,7 @@ export default function EditarLanche({ route, navigation }: any) {
           <TextInput style={styles.input} value={quantidadeDisponivel} onChangeText={setQuantidadeDisponivel} keyboardType="numeric" placeholder="10" />
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>Lanche disponível para venda</Text>
-            <Switch value={disponivel} onValueChange={setDisponivel} trackColor={{ false: "#ddd", true: "#FF6B6B" }} />
+            <Switch value={disponivel} onValueChange={setDisponivel} trackColor={{ false: colors.borderLight, true: colors.primary }} />
           </View>
           <Text style={styles.label}>Tempo de preparo (minutos)</Text>
           <TextInput style={styles.input} value={tempoPreparo} onChangeText={setTempoPreparo} keyboardType="numeric" placeholder="15-25" />
@@ -139,7 +147,7 @@ export default function EditarLanche({ route, navigation }: any) {
         <View style={styles.section}>
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>🎯 Ativar promoção</Text>
-            <Switch value={promocao} onValueChange={setPromocao} trackColor={{ false: "#ddd", true: "#FF6B6B" }} />
+            <Switch value={promocao} onValueChange={setPromocao} trackColor={{ false: colors.borderLight, true: colors.primary }} />
           </View>
           {promocao && (
             <View>
@@ -152,7 +160,7 @@ export default function EditarLanche({ route, navigation }: any) {
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={[styles.saveButton, loading && styles.disabledButton]} onPress={atualizarLanche} disabled={loading}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>💾 Salvar Alterações</Text>}
+            {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.saveButtonText}>💾 Salvar Alterações</Text>}
           </TouchableOpacity>
           <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
             <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -164,31 +172,27 @@ export default function EditarLanche({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 20, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#eee" },
-  backButton: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
-  backIcon: { fontSize: 28, color: "#FF6B6B" },
-  titulo: { fontSize: 20, fontWeight: "bold", color: "#333" },
-  deleteButton: { width: 40, height: 40, justifyContent: "center", alignItems: "center" },
-  deleteButtonText: { fontSize: 24 },
-  imageSection: { backgroundColor: "#fff", alignItems: "center", padding: 20, marginTop: 12 },
+  container: { flex: 1, backgroundColor: colors.background },
+  headerRightButton: { paddingHorizontal: 12, paddingVertical: 6 },
+  headerRightText: { color: colors.danger, fontSize: 15, fontWeight: "600" },
+  imageSection: { backgroundColor: colors.card, alignItems: "center", padding: 20, marginTop: 12 },
   previewImage: { width: 150, height: 150, borderRadius: 15, marginBottom: 15, resizeMode: "cover" },
-  changeImageButton: { backgroundColor: "#f5f5f5", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25 },
-  changeImageText: { color: "#FF6B6B", fontWeight: "500" },
-  section: { backgroundColor: "#fff", marginTop: 12, paddingHorizontal: 20, paddingVertical: 16 },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 16 },
-  label: { fontSize: 14, color: "#666", marginBottom: 8, marginTop: 12, fontWeight: "500" },
-  input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: "#fff" },
+  changeImageButton: { backgroundColor: colors.surfaceAlt, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25 },
+  changeImageText: { color: colors.primaryText, fontWeight: "500" },
+  section: { backgroundColor: colors.card, marginTop: 12, paddingHorizontal: 20, paddingVertical: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 },
+  label: { fontSize: 14, color: colors.textSecondary, marginBottom: 8, marginTop: 12, fontWeight: "500" },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: colors.card },
   textArea: { minHeight: 100, textAlignVertical: "top" },
   switchRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 12 },
-  switchLabel: { fontSize: 16, color: "#333" },
+  switchLabel: { fontSize: 16, color: colors.text },
   checkboxRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
-  checkboxLabel: { fontSize: 16, marginLeft: 12, color: "#333" },
-  helperText: { fontSize: 11, color: "#999", marginTop: 5 },
+  checkboxLabel: { fontSize: 16, marginLeft: 12, color: colors.text },
+  helperText: { fontSize: 11, color: colors.textLight, marginTop: 5 },
   buttonContainer: { padding: 20, marginBottom: 30 },
-  saveButton: { backgroundColor: "#27ae60", paddingVertical: 16, borderRadius: 12, alignItems: "center", marginBottom: 12 },
-  saveButtonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
-  cancelButton: { backgroundColor: "#f5f5f5", paddingVertical: 16, borderRadius: 12, alignItems: "center" },
-  cancelButtonText: { color: "#666", fontSize: 16 },
+  saveButton: { backgroundColor: colors.success, paddingVertical: 16, borderRadius: 12, alignItems: "center", marginBottom: 12 },
+  saveButtonText: { color: colors.white, fontSize: 18, fontWeight: "bold" },
+  cancelButton: { backgroundColor: colors.surfaceAlt, paddingVertical: 16, borderRadius: 12, alignItems: "center" },
+  cancelButtonText: { color: colors.textSecondary, fontSize: 16 },
   disabledButton: { opacity: 0.7 },
 });

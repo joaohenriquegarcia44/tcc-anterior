@@ -13,19 +13,24 @@ import {
   RefreshControl,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { auth, db } from "../database/database";
 import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, deleteDoc, orderBy } from "firebase/firestore";
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, signOut, updateProfile } from "firebase/auth";
 import * as ImagePicker from "expo-image-picker";
 import { IMGBB_API_KEY } from "@env";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-
-const { width } = Dimensions.get("window");
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import FoodImage from "../components/FoodImage";
+import LoyaltyCard from "../components/LoyaltyCard";
+import LoadingState from "../components/LoadingState";
+import BottomNavigation from "../components/BottomNavigation";
+import { colors, spacing, borderRadius, shadows, typography } from "../styles/theme";
+import { ABAS_PRINCIPAIS } from "../navigation/tabs";
+import type { DocumentoFirestore } from "../types/models";
 
 export default function Perfil({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   const [userData, setUserData] = useState<any>({});
   const [editando, setEditando] = useState(false);
   const [novaSenha, setNovaSenha] = useState("");
@@ -90,7 +95,7 @@ export default function Perfil({ navigation }: any) {
 
       const pedidosQuery = query(collection(db, "pedidos"), where("vendedorId", "==", auth.currentUser.uid), orderBy("criadoEm", "desc"));
       const pedidosSnap = await getDocs(pedidosQuery);
-      const pedidosLista = pedidosSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const pedidosLista: DocumentoFirestore[] = pedidosSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setPedidosRecebidos(pedidosLista);
 
       const hoje = new Date();
@@ -105,7 +110,7 @@ export default function Perfil({ navigation }: any) {
 
       const avaliacoesQuery = query(collection(db, "avaliacoes_vendedor"), where("vendedorId", "==", auth.currentUser.uid), orderBy("criadoEm", "desc"));
       const avaliacoesSnap = await getDocs(avaliacoesQuery);
-      const listaAvaliacoes = avaliacoesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const listaAvaliacoes: DocumentoFirestore[] = avaliacoesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setAvaliacoesRecebidas(listaAvaliacoes);
       const soma = listaAvaliacoes.reduce((acc, av) => acc + av.nota, 0);
       setMediaAvaliacaoVendedor(listaAvaliacoes.length ? soma / listaAvaliacoes.length : 0);
@@ -295,15 +300,23 @@ export default function Perfil({ navigation }: any) {
   const isAdmin = userData.papel === "admin";
 
   if (loading)
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
-      </View>
-    );
+    return <LoadingState mensagem="Carregando seu perfil..." />;
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={["#FF6B6B", "#FF8E8E"]} style={styles.header}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+      >
+      <View style={[styles.header, { paddingTop: insets.top + spacing.xl }]}>
+        <View style={styles.halo} pointerEvents="none" />
         <TouchableOpacity onPress={escolherOpcaoImagem} disabled={uploadingImage} activeOpacity={0.8} style={styles.avatarWrapper}>
           {userData.fotoPerfil ? (
             <Image source={{ uri: userData.fotoPerfil }} style={styles.avatarImage} />
@@ -314,23 +327,29 @@ export default function Perfil({ navigation }: any) {
           )}
           {uploadingImage && (
             <View style={styles.uploadOverlay}>
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.white} />
             </View>
           )}
           <View style={styles.cameraIconContainer}>
-            <Ionicons name="camera" size={18} color="#FF6B6B" />
+            <Ionicons name="camera" size={18} color={colors.primary} />
           </View>
         </TouchableOpacity>
         <Text style={styles.nome}>{userData.nome || "Aluno IFSul"}</Text>
         <Text style={styles.email}>{auth.currentUser?.email}</Text>
-      </LinearGradient>
+
+        {userData.pontos > 0 && (
+          <View style={styles.pontosChip}>
+            <Text style={styles.pontosChipTexto}>👑 {userData.pontos} pontos</Text>
+          </View>
+        )}
+      </View>
 
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === "perfil" && styles.tabActive]}
           onPress={() => setActiveTab("perfil")}
         >
-          <Ionicons name="person-outline" size={22} color={activeTab === "perfil" ? "#FF6B6B" : "#999"} />
+          <Ionicons name="person-outline" size={22} color={activeTab === "perfil" ? colors.primary : colors.textLight} />
           <Text style={[styles.tabText, activeTab === "perfil" && styles.tabTextActive]}>Perfil</Text>
         </TouchableOpacity>
         {isAdmin && (
@@ -338,16 +357,12 @@ export default function Perfil({ navigation }: any) {
             style={[styles.tab, activeTab === "vendedor" && styles.tabActive]}
             onPress={() => setActiveTab("vendedor")}
           >
-            <Ionicons name="storefront-outline" size={22} color={activeTab === "vendedor" ? "#FF6B6B" : "#999"} />
+            <Ionicons name="storefront-outline" size={22} color={activeTab === "vendedor" ? colors.primary : colors.textLight} />
             <Text style={[styles.tabText, activeTab === "vendedor" && styles.tabTextActive]}>Vendedor</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#FF6B6B"]} />}
-      >
         {activeTab === "perfil" && (
           <View style={styles.content}>
             <View style={styles.card}>
@@ -372,30 +387,35 @@ export default function Perfil({ navigation }: any) {
               ) : (
                 <View>
                   <View style={styles.infoRow}>
-                    <Ionicons name="person" size={20} color="#666" />
+                    <Ionicons name="person" size={20} color={colors.textSecondary} />
                     <Text style={styles.infoLabel}>Nome</Text>
                     <Text style={styles.infoValue}>{userData.nome || "Não informado"}</Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Ionicons name="call" size={20} color="#666" />
+                    <Ionicons name="call" size={20} color={colors.textSecondary} />
                     <Text style={styles.infoLabel}>Telefone</Text>
                     <Text style={styles.infoValue}>{userData.telefone || "Não informado"}</Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Ionicons name="mail" size={20} color="#666" />
+                    <Ionicons name="mail" size={20} color={colors.textSecondary} />
                     <Text style={styles.infoLabel}>E-mail</Text>
                     <Text style={styles.infoValue}>{auth.currentUser?.email}</Text>
                   </View>
                   <TouchableOpacity style={styles.passwordButton} onPress={() => setShowPasswordModal(true)}>
-                    <Ionicons name="lock-closed" size={20} color="#FF6B6B" />
+                    <Ionicons name="lock-closed" size={20} color={colors.primary} />
                     <Text style={styles.passwordButtonText}>Alterar senha</Text>
                   </TouchableOpacity>
                 </View>
               )}
             </View>
 
+            <LoyaltyCard
+              pontos={Number(userData.pontos) || 0}
+              onPress={() => navigation.navigate("Fidelidade")}
+            />
+
             <View style={styles.statsCard}>
-              <Text style={styles.cardTitle}>📊 Sua Atividade</Text>
+              <Text style={styles.cardTitle}>📊 Sua atividade</Text>
               <View style={styles.statsGrid}>
                 <View style={styles.statItem}>
                   <Text style={styles.statNumber}>{pedidosRecebidos.length}</Text>
@@ -416,7 +436,7 @@ export default function Perfil({ navigation }: any) {
               <View style={styles.adminActionsRow}>
                 <TouchableOpacity style={styles.adminActionCard} onPress={() => navigation.navigate("PainelVendedor")} activeOpacity={0.8}>
                   <View style={[styles.adminActionIcon, { backgroundColor: "rgba(255,107,107,0.15)" }]}>
-                    <Ionicons name="storefront" size={22} color="#FF6B6B" />
+                    <Ionicons name="storefront" size={22} color={colors.primary} />
                   </View>
                   <Text style={styles.adminActionTitle}>Vendas</Text>
                   <Text style={styles.adminActionSub}>Painel do vendedor</Text>
@@ -424,7 +444,7 @@ export default function Perfil({ navigation }: any) {
 
                 <TouchableOpacity style={styles.adminActionCard} onPress={confirmarLimpeza} activeOpacity={0.8}>
                   <View style={[styles.adminActionIcon, { backgroundColor: "rgba(108,92,231,0.15)" }]}>
-                    <Ionicons name="trash-bin" size={22} color="#6c5ce7" />
+                    <Ionicons name="trash-bin" size={22} color={colors.purple} />
                   </View>
                   <Text style={styles.adminActionTitle}>Limpar</Text>
                   <Text style={styles.adminActionSub}>Pedidos antigos</Text>
@@ -432,9 +452,9 @@ export default function Perfil({ navigation }: any) {
               </View>
             )}
 
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Ionicons name="log-out" size={22} color="#fff" />
-              <Text style={styles.logoutButtonText}>Sair do App</Text>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.85}>
+              <Ionicons name="log-out" size={20} color={colors.danger} />
+              <Text style={styles.logoutButtonText}>Sair do app</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -479,7 +499,7 @@ export default function Perfil({ navigation }: any) {
                   </View>
                   {meusLanches.map((lanche) => (
                     <View key={lanche.id} style={styles.lancheItem}>
-                      <Image source={{ uri: lanche.imagem }} style={styles.lancheImage} />
+                      <FoodImage uri={lanche.imagem} style={styles.lancheImage} radius={borderRadius.md} fallbackIcon="🍔" />
                       <View style={styles.lancheInfo}>
                         <Text style={styles.lancheName}>{lanche.nome}</Text>
                         <Text style={styles.lanchePrice}>R$ {lanche.preco}</Text>
@@ -488,7 +508,7 @@ export default function Perfil({ navigation }: any) {
                         </Text>
                       </View>
                       <TouchableOpacity style={styles.editLancheButton} onPress={() => navigation.navigate("EditarLanche", { lanche })}>
-                        <Ionicons name="pencil" size={20} color="#3498db" />
+                        <Ionicons name="pencil" size={20} color={colors.info} />
                       </TouchableOpacity>
                     </View>
                   ))}
@@ -510,7 +530,7 @@ export default function Perfil({ navigation }: any) {
                         <Text style={styles.pedidoDate}>{formatarData(pedido.criadoEm)}</Text>
                         <Text style={styles.pedidoTotal}>Total: R$ {pedido.total}</Text>
                         <TouchableOpacity style={styles.deletePedidoButton} onPress={() => deletarPedido(pedido)}>
-                          <Ionicons name="trash-bin" size={15} color="#e74c3c" />
+                          <Ionicons name="trash-bin" size={15} color={colors.danger} />
                           <Text style={styles.deletePedidoText}>Apagar pedido</Text>
                         </TouchableOpacity>
                       </View>
@@ -541,21 +561,27 @@ export default function Perfil({ navigation }: any) {
         )}
       </ScrollView>
 
+      <BottomNavigation
+        abas={ABAS_PRINCIPAIS}
+        ativa="Perfil"
+        onSelect={(key) => navigation.navigate(key)}
+      />
+
       <Modal visible={showPasswordModal} transparent animationType="slide">
         <KeyboardAvoidingView style={styles.modalContainer} behavior={Platform.OS === "ios" ? "padding" : "height"}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Alterar senha</Text>
             <View style={styles.modalInputContainer}>
-              <Ionicons name="lock-closed" size={20} color="#999" />
-              <TextInput style={styles.modalInput} placeholder="Senha atual" secureTextEntry value={senhaAtual} onChangeText={setSenhaAtual} />
+              <Ionicons name="lock-closed" size={20} color={colors.textLight} />
+              <TextInput style={styles.modalInput} placeholder="Senha atual" placeholderTextColor={colors.textLight} secureTextEntry value={senhaAtual} onChangeText={setSenhaAtual} />
             </View>
             <View style={styles.modalInputContainer}>
-              <Ionicons name="lock-closed" size={20} color="#999" />
-              <TextInput style={styles.modalInput} placeholder="Nova senha" secureTextEntry value={novaSenha} onChangeText={setNovaSenha} />
+              <Ionicons name="lock-closed" size={20} color={colors.textLight} />
+              <TextInput style={styles.modalInput} placeholder="Nova senha" placeholderTextColor={colors.textLight} secureTextEntry value={novaSenha} onChangeText={setNovaSenha} />
             </View>
             <View style={styles.modalInputContainer}>
-              <Ionicons name="lock-closed" size={20} color="#999" />
-              <TextInput style={styles.modalInput} placeholder="Confirmar nova senha" secureTextEntry value={confirmarSenha} onChangeText={setConfirmarSenha} />
+              <Ionicons name="lock-closed" size={20} color={colors.textLight} />
+              <TextInput style={styles.modalInput} placeholder="Confirmar nova senha" placeholderTextColor={colors.textLight} secureTextEntry value={confirmarSenha} onChangeText={setConfirmarSenha} />
             </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setShowPasswordModal(false)}>
@@ -573,91 +599,136 @@ export default function Perfil({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
+  container: { flex: 1, backgroundColor: colors.background },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  header: { paddingTop: 50, paddingBottom: 30, alignItems: "center", borderBottomLeftRadius: 30, borderBottomRightRadius: 30, overflow: "visible" },
-  avatarWrapper: { position: "relative", marginBottom: 12, overflow: "visible" },
-  avatarContainer: { width: 90, height: 90, borderRadius: 45, backgroundColor: "#fff", justifyContent: "center", alignItems: "center", elevation: 5 },
-  avatarImage: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: "#fff" },
-  avatarText: { fontSize: 40, fontWeight: "bold", color: "#FF6B6B" },
-  cameraIconContainer: { position: "absolute", bottom: 0, right: 0, backgroundColor: "#fff", borderRadius: 20, padding: 6, elevation: 5, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, zIndex: 10 },
-  uploadOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 45, justifyContent: "center", alignItems: "center" },
-  nome: { fontSize: 22, fontWeight: "bold", color: "#fff", marginBottom: 4 },
-  email: { fontSize: 14, color: "#fff", opacity: 0.9 },
-  tabsContainer: { flexDirection: "row", backgroundColor: "#fff", paddingHorizontal: 20, elevation: 2 },
-  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 14, gap: 8 },
-  tabActive: { borderBottomWidth: 3, borderBottomColor: "#FF6B6B" },
-  tabText: { fontSize: 15, color: "#999", marginLeft: 4 },
-  tabTextActive: { color: "#FF6B6B", fontWeight: "bold" },
-  content: { padding: 20 },
-  card: { backgroundColor: "#fff", borderRadius: 20, padding: 20, marginBottom: 20, elevation: 2 },
-  statsCard: { backgroundColor: "#fff", borderRadius: 20, padding: 20, marginBottom: 20, elevation: 2 },
+  header: {
+    paddingBottom: spacing.xxl,
+    alignItems: "center",
+    backgroundColor: colors.background,
+    overflow: "hidden",
+  },
+  halo: {
+    position: "absolute",
+    top: -30,
+    alignSelf: "center",
+    width: 320,
+    height: 260,
+    borderRadius: 160,
+    backgroundColor: colors.glow,
+  },
+  pontosChip: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 5,
+    borderRadius: borderRadius.round,
+    backgroundColor: "rgba(255,196,0,0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255,196,0,0.35)",
+  },
+  pontosChipTexto: { color: colors.secondary, fontSize: 12, fontWeight: "800" },
+  avatarWrapper: { position: "relative", marginBottom: spacing.md, overflow: "visible" },
+  avatarContainer: { width: 96, height: 96, borderRadius: 48, backgroundColor: colors.card, justifyContent: "center", alignItems: "center", borderWidth: 2, borderColor: colors.borderLight, ...shadows.medium },
+  avatarImage: { width: 96, height: 96, borderRadius: 48, borderWidth: 2, borderColor: colors.primary },
+  avatarText: { fontSize: 40, fontWeight: "800", color: colors.primaryText },
+  cameraIconContainer: { position: "absolute", bottom: 0, right: 0, backgroundColor: colors.surface, borderRadius: 20, padding: 7, borderWidth: 1, borderColor: colors.border, zIndex: 10 },
+  uploadOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", borderRadius: 48, justifyContent: "center", alignItems: "center" },
+  nome: { ...typography.h2, marginBottom: 2 },
+  email: { fontSize: 13, color: colors.textSecondary },
+  tabsContainer: {
+    flexDirection: "row",
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.xl,
+  },
+  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: spacing.lg, gap: 8, minHeight: 48 },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: colors.primary },
+  tabText: { fontSize: 14, color: colors.textLight },
+  tabTextActive: { color: colors.primaryText, fontWeight: "700" },
+  content: { padding: spacing.xl, gap: spacing.lg },
+  card: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    ...shadows.small,
+  },
+  statsCard: {
+    backgroundColor: colors.card,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    ...shadows.small,
+  },
   cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
-  cardTitle: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  editButton: { color: "#FF6B6B", fontSize: 14, fontWeight: "500" },
-  label: { fontSize: 14, color: "#666", marginBottom: 6, marginTop: 10 },
-  input: { borderWidth: 1, borderColor: "#ddd", borderRadius: 12, padding: 12, fontSize: 16, backgroundColor: "#fff" },
-  saveButton: { backgroundColor: "#FF6B6B", padding: 14, borderRadius: 12, alignItems: "center", marginTop: 16 },
-  saveButtonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
-  infoRow: { flexDirection: "row", alignItems: "center", paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
-  infoLabel: { fontSize: 15, color: "#666", flex: 1, marginLeft: 12 },
-  infoValue: { fontSize: 15, color: "#333", fontWeight: "500", flex: 2 },
-  passwordButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: 16, padding: 12, backgroundColor: "#f5f5f5", borderRadius: 12, gap: 8 },
-  passwordButtonText: { color: "#FF6B6B", fontSize: 15, fontWeight: "500" },
-  statsGrid: { flexDirection: "row", justifyContent: "space-around", marginTop: 8 },
-  statItem: { alignItems: "center" },
-  statNumber: { fontSize: 28, fontWeight: "bold", color: "#FF6B6B" },
-  statLabel: { fontSize: 12, color: "#999", marginTop: 4 },
-  adminActionsRow: { flexDirection: "row", gap: 12, marginBottom: 12 },
-  adminActionCard: { flex: 1, backgroundColor: "#fff", borderRadius: 16, padding: 16, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  adminActionIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: "center", alignItems: "center", marginBottom: 8 },
-  adminActionTitle: { fontSize: 14, fontWeight: "bold", color: "#333", marginBottom: 2 },
-  adminActionSub: { fontSize: 11, color: "#999", textAlign: "center" },
-  logoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "#e74c3c", padding: 14, borderRadius: 12, marginBottom: 20, gap: 10 },
-  logoutButtonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  emptyVendorCard: { backgroundColor: "#fff", borderRadius: 20, padding: 30, alignItems: "center", marginBottom: 20 },
-  emptyIcon: { fontSize: 60, marginBottom: 16 },
-  emptyTitle: { fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 8 },
-  emptyText: { fontSize: 14, color: "#999", textAlign: "center", marginBottom: 20 },
-  startSellingButton: { backgroundColor: "#FF6B6B", paddingHorizontal: 20, paddingVertical: 12, borderRadius: 25 },
-  startSellingText: { color: "#fff", fontWeight: "bold" },
-  metricsContainer: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
-  metricCard: { flex: 1, alignItems: "center", backgroundColor: "#f8f8f8", padding: 12, borderRadius: 12, marginHorizontal: 5 },
-  metricValue: { fontSize: 20, fontWeight: "bold", color: "#FF6B6B" },
-  metricLabel: { fontSize: 11, color: "#999", marginTop: 5 },
-  addButton: { color: "#FF6B6B", fontWeight: "bold" },
-  lancheItem: { flexDirection: "row", marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
-  lancheImage: { width: 60, height: 60, borderRadius: 12 },
-  lancheInfo: { flex: 1, marginLeft: 12 },
-  lancheName: { fontSize: 16, fontWeight: "500", color: "#333" },
-  lanchePrice: { fontSize: 14, color: "#FF6B6B", marginTop: 4 },
-  lancheOrders: { fontSize: 12, color: "#999", marginTop: 4 },
-  editLancheButton: { justifyContent: "center", paddingHorizontal: 10 },
-  pedidoItem: { marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
+  cardTitle: { fontSize: 18, fontWeight: "bold", color: colors.text },
+  editButton: { color: colors.primaryText, fontSize: 14, fontWeight: "500" },
+  label: { fontSize: 12, color: colors.textSecondary, marginBottom: 6, marginTop: 10 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.lg, padding: spacing.md, fontSize: 15, color: colors.text, backgroundColor: colors.input, minHeight: 48 },
+  saveButton: { backgroundColor: colors.primary, padding: 15, borderRadius: borderRadius.round, alignItems: "center", marginTop: spacing.lg, minHeight: 48 },
+  saveButtonText: { color: colors.white, fontWeight: "800", fontSize: 15 },
+  infoRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  infoLabel: { fontSize: 14, color: colors.textSecondary, flex: 1, marginLeft: spacing.md },
+  infoValue: { fontSize: 14, color: colors.text, fontWeight: "600", flex: 2, textAlign: "right" },
+  passwordButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginTop: spacing.lg, paddingVertical: spacing.md, backgroundColor: colors.surfaceAlt, borderRadius: borderRadius.lg, borderWidth: 1, borderColor: colors.border, gap: 8, minHeight: 48 },
+  passwordButtonText: { color: colors.primaryText, fontSize: 14, fontWeight: "600" },
+  statsGrid: { flexDirection: "row", justifyContent: "space-around", marginTop: spacing.md },
+  statItem: { alignItems: "center", flex: 1 },
+  statNumber: { fontSize: 24, fontWeight: "900", color: colors.primaryText },
+  statLabel: { fontSize: 11, color: colors.textLight, marginTop: 4 },
+  adminActionsRow: { flexDirection: "row", gap: spacing.md },
+  adminActionCard: { flex: 1, backgroundColor: colors.card, borderRadius: borderRadius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, alignItems: "center", minHeight: 88 },
+  adminActionIcon: { width: 44, height: 44, borderRadius: borderRadius.md, justifyContent: "center", alignItems: "center", marginBottom: spacing.sm },
+  adminActionTitle: { fontSize: 14, fontWeight: "700", color: colors.text, marginBottom: 2 },
+  adminActionSub: { fontSize: 11, color: colors.textLight, textAlign: "center" },
+  logoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: "transparent", borderWidth: 1, borderColor: colors.danger, padding: 15, borderRadius: borderRadius.round, gap: 10, minHeight: 48 },
+  logoutButtonText: { color: colors.danger, fontSize: 15, fontWeight: "700" },
+  emptyVendorCard: { backgroundColor: colors.card, borderRadius: borderRadius.xl, borderWidth: 1, borderColor: colors.border, padding: spacing.xxl, alignItems: "center" },
+  emptyIcon: { fontSize: 56, marginBottom: spacing.lg },
+  emptyTitle: { fontSize: 17, fontWeight: "700", color: colors.text, marginBottom: spacing.sm, textAlign: "center" },
+  emptyText: { fontSize: 13, color: colors.textLight, textAlign: "center", marginBottom: spacing.lg, lineHeight: 19 },
+  startSellingButton: { backgroundColor: colors.primary, paddingHorizontal: spacing.xl, paddingVertical: 14, borderRadius: borderRadius.round, minHeight: 48, justifyContent: "center" },
+  startSellingText: { color: colors.white, fontWeight: "700" },
+  metricsContainer: { flexDirection: "row", justifyContent: "space-between", marginTop: spacing.md, gap: spacing.sm },
+  metricCard: { flex: 1, alignItems: "center", backgroundColor: colors.input, padding: spacing.md, borderRadius: borderRadius.md, borderWidth: 1, borderColor: colors.border },
+  metricValue: { fontSize: 18, fontWeight: "800", color: colors.primaryText },
+  metricLabel: { fontSize: 11, color: colors.textLight, marginTop: 5 },
+  addButton: { color: colors.primaryText, fontWeight: "700" },
+  lancheItem: { flexDirection: "row", marginBottom: spacing.md, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  lancheImage: { width: 60, height: 60, borderRadius: borderRadius.md },
+  lancheInfo: { flex: 1, marginLeft: spacing.md },
+  lancheName: { fontSize: 15, fontWeight: "600", color: colors.text },
+  lanchePrice: { fontSize: 14, color: colors.primaryText, marginTop: 4, fontWeight: "700" },
+  lancheOrders: { fontSize: 12, color: colors.textLight, marginTop: 4 },
+  editLancheButton: { justifyContent: "center", paddingHorizontal: spacing.md },
+  pedidoItem: { marginBottom: spacing.md, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   pedidoHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  pedidoId: { fontSize: 14, fontWeight: "500", color: "#666" },
-  pedidoStatus: { fontSize: 12, fontWeight: "500" },
-  statusSuccess: { color: "#27ae60" },
-  statusPending: { color: "#FFB800" },
-  pedidoDate: { fontSize: 12, color: "#999", marginBottom: 5 },
-  pedidoTotal: { fontSize: 14, fontWeight: "bold", color: "#333" },
-  deletePedidoButton: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", marginTop: 8, gap: 4, paddingVertical: 6, paddingHorizontal: 10, backgroundColor: "#fdecea", borderRadius: 8 },
-  deletePedidoText: { fontSize: 12, color: "#e74c3c", fontWeight: "600" },
-  avaliacaoItem: { marginBottom: 15, paddingBottom: 15, borderBottomWidth: 1, borderBottomColor: "#f0f0f0" },
+  pedidoId: { fontSize: 14, fontWeight: "600", color: colors.textSecondary },
+  pedidoStatus: { fontSize: 12, fontWeight: "600" },
+  statusSuccess: { color: colors.success },
+  statusPending: { color: colors.warning },
+  pedidoDate: { fontSize: 12, color: colors.textLight, marginBottom: 5 },
+  pedidoTotal: { fontSize: 14, fontWeight: "700", color: colors.text },
+  deletePedidoButton: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", marginTop: spacing.sm, gap: 4, paddingVertical: 8, paddingHorizontal: spacing.md, backgroundColor: "rgba(255,59,71,0.12)", borderRadius: borderRadius.round, minHeight: 36 },
+  deletePedidoText: { fontSize: 12, color: colors.danger, fontWeight: "600" },
+  avaliacaoItem: { marginBottom: spacing.md, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   avaliacaoHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  avaliacaoStars: { fontSize: 16, color: "#FFB800" },
-  avaliacaoNota: { fontSize: 14, fontWeight: "bold", color: "#FFB800" },
-  avaliacaoComentario: { fontSize: 14, color: "#666", marginBottom: 5, fontStyle: "italic" },
-  avaliacaoDate: { fontSize: 11, color: "#999" },
-  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { backgroundColor: "#fff", borderRadius: 24, padding: 24, width: "90%", maxHeight: "80%" },
-  modalTitle: { fontSize: 22, fontWeight: "bold", marginBottom: 24, textAlign: "center" },
-  modalInputContainer: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ddd", borderRadius: 12, paddingHorizontal: 12, marginBottom: 15, backgroundColor: "#fafafa" },
-  modalInput: { flex: 1, paddingVertical: 12, fontSize: 16 },
-  modalButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
-  modalButton: { flex: 1, padding: 12, borderRadius: 12, marginHorizontal: 5, alignItems: "center" },
-  cancelButton: { backgroundColor: "#f5f5f5" },
-  cancelButtonText: { color: "#666", fontWeight: "500" },
-  confirmButton: { backgroundColor: "#FF6B6B" },
-  confirmButtonText: { color: "#fff", fontWeight: "bold" },
+  avaliacaoStars: { fontSize: 15, color: colors.secondary },
+  avaliacaoNota: { fontSize: 13, fontWeight: "700", color: colors.secondary },
+  avaliacaoComentario: { fontSize: 13, color: colors.textSecondary, marginBottom: 5, fontStyle: "italic" },
+  avaliacaoDate: { fontSize: 11, color: colors.textLight },
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.overlay },
+  modalContent: { backgroundColor: colors.card, borderRadius: borderRadius.xxl, borderWidth: 1, borderColor: colors.border, padding: spacing.xl, width: "90%", ...shadows.large },
+  modalTitle: { ...typography.h2, marginBottom: spacing.lg, textAlign: "center" },
+  modalInputContainer: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: borderRadius.lg, paddingHorizontal: spacing.lg, marginBottom: spacing.md, backgroundColor: colors.input, minHeight: 48 },
+  modalInput: { flex: 1, paddingVertical: spacing.md, fontSize: 15, color: colors.text },
+  modalButtons: { flexDirection: "row", gap: spacing.md, marginTop: spacing.lg },
+  modalButton: { flex: 1, padding: 14, borderRadius: borderRadius.round, alignItems: "center", minHeight: 48 },
+  cancelButton: { backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.border },
+  cancelButtonText: { color: colors.textSecondary, fontWeight: "600" },
+  confirmButton: { backgroundColor: colors.primary },
+  confirmButtonText: { color: colors.white, fontWeight: "700" },
 });

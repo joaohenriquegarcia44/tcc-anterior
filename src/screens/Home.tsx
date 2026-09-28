@@ -1,23 +1,47 @@
-import React from "react";
+import React, { useContext, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
-  TextInput,
-  ScrollView,
-  Image,
   RefreshControl,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from "react-native";
 import { auth } from "../database/database";
 import { useHomeLogic } from "../hooks/useHomeLogic";
-import { colors, spacing, borderRadius, shadows } from "../styles/theme";
+import { CartContext } from "../services/CartContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors, spacing, borderRadius, typography } from "../styles/theme";
+import SearchBar from "../components/SearchBar";
+import CategoryButton from "../components/CategoryButton";
+import Banner from "../components/Banner";
+import ProductCard from "../components/ProductCard";
+import BottomNavigation from "../components/BottomNavigation";
+import CircleActionButton from "../components/CircleActionButton";
+import MoodSelector from "../components/MoodSelector";
+import Top5Semana from "../components/Top5Semana";
+import ComboCard from "../components/ComboCard";
+import ComboBuilder from "../components/ComboBuilder";
+import QuaseFavoritos from "../components/QuaseFavoritos";
+import StatusCard from "../components/StatusCard";
+import IntervaloCard from "../components/IntervaloCard";
+import EmptyState from "../components/EmptyState";
+import LoadingState from "../components/LoadingState";
+import { useStatusLancheriaLogic } from "../hooks/useStatusLancheriaLogic";
+import { useRankingSemanaLogic } from "../hooks/useRankingSemanaLogic";
+import { useRecomendacoesLogic } from "../hooks/useRecomendacoesLogic";
+import { ABAS_PRINCIPAIS } from "../navigation/tabs";
 
 export default function Home({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const scrollRef = useRef<ScrollView>(null);
+  const { totalItens, adicionarAoCarrinho } = useContext(CartContext);
   const {
+    lanches,
     filteredLanches,
     promocoes,
     lanchesFavoritos,
@@ -30,422 +54,330 @@ export default function Home({ navigation }: any) {
     filtrarPorCategoria,
     onRefresh,
     refreshing,
-    getCategoriaIcon,
   } = useHomeLogic(navigation);
 
+  const status = useStatusLancheriaLogic(lanches);
+  const [comboAberto, setComboAberto] = useState(false);
+
+  const { top5, rankingParcial } = useRankingSemanaLogic(lanches);
+  const idsFavoritos = useMemo(() => lanchesFavoritos.map((f: any) => f.id), [lanchesFavoritos]);
+  const { itens: quaseFavoritos, motivo } = useRecomendacoesLogic(lanches, idsFavoritos);
+
+  const primeiroNome =
+    auth.currentUser?.displayName?.split(" ")[0] ||
+    auth.currentUser?.email?.split("@")[0] ||
+    "Aluno";
+
+  // A foto do banner vem de um lanche real do Firestore (sem imagem fictícia fixa).
+  const imagemBanner = promocoes[0]?.imagem || filteredLanches[0]?.imagem || null;
+
+  const cardLargura = Math.min(300, (width - spacing.xl * 2 - spacing.md) / 2);
+
+  /** Atalho do MoodSelector: filtra e rola até a lista de lanches. */
+  function escolherHumor(categoriaId: string) {
+    filtrarPorCategoria(categoriaId);
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
+  }
+
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Carregando delícias...</Text>
-      </View>
-    );
+    return <LoadingState mensagem="Carregando delícias..." sub="Buscando o cardápio de hoje" />;
   }
 
   if (firebaseError) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={{ fontSize: 60, marginBottom: 20 }}>⚠️</Text>
-        <Text style={styles.errorText}>Erro de conexão</Text>
-        <Text style={styles.errorSubtext}>{firebaseError}</Text>
+      <View style={styles.container}>
+        <EmptyState
+          icon="📡"
+          titulo="Sem conexão com o cardápio"
+          descricao={
+            firebaseError ||
+            "Não conseguimos falar com o banco de dados agora. Puxe para baixo para tentar de novo."
+          }
+        />
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* HEADER */}
+        <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
           <View style={styles.headerTop}>
-            <View style={styles.headerContent}>
-              <Text style={styles.greeting}>Olá, {auth.currentUser?.displayName?.split('@')[0] || auth.currentUser?.email?.split('@')[0] || "Aluno"} 👋</Text>
-              <Text style={styles.subtitle}>O que você quer comer hoje?</Text>
+            <View style={styles.headerTextos}>
+              <Text style={styles.saudacao}>Olá, {primeiroNome}! 👋</Text>
+              <Text style={styles.subtitulo}>O que você quer comer hoje?</Text>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate("Perfil")} style={styles.profileButton}>
-              <Text style={styles.profileIcon}>👤</Text>
-            </TouchableOpacity>
+
+            <View style={styles.headerAcoes}>
+              <CircleActionButton
+                icon="🛒"
+                titulo="Abrir carrinho"
+                onPress={() => navigation.navigate("Carrinho")}
+                tamanho={44}
+                badge={totalItens}
+              />
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Perfil")}
+                style={styles.perfilBotao}
+                accessibilityLabel="Abrir perfil"
+              >
+                <Text style={styles.perfilIcone}>👤</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <View style={styles.searchContainer}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar lanches..."
-              placeholderTextColor={colors.textLight}
-              value={searchText}
-              onChangeText={setSearchText}
+          <SearchBar value={searchText} onChangeText={setSearchText} style={styles.busca} />
+        </View>
+
+        {/* 1 · COMO TÁ SEU DIA? */}
+        <View style={styles.bloco}>
+          <MoodSelector
+            onSelect={escolherHumor}
+            selecionada={["lanche", "bebida", "doce"].includes(categoriaSelecionada) ? categoriaSelecionada : undefined}
+          />
+        </View>
+
+        {/* 2 + 3 · STATUS DA LANCHERIA E PRÓXIMO INTERVALO */}
+        <View style={styles.cardsRow}>
+          <StatusCard disponiveis={status.disponiveis} preparoMin={status.preparoMin} />
+          <IntervaloCard />
+        </View>
+
+        {/* BANNER */}
+        <View style={styles.bloco}>
+          <Banner
+            imagem={imagemBanner}
+            titulo={"LANCHES DE VERDADE\nPARA O SEU DIA!"}
+            subtitulo="Retirada rápida no IF · Sem taxa de entrega"
+            cta="Ver cardápio"
+            onCta={() => navigation.navigate("Cardapio")}
+          />
+        </View>
+
+        {/* CATEGORIAS */}
+        <View style={styles.categoriasBloco}>
+          <CategoryButton
+            categorias={categorias}
+            selecionada={categoriaSelecionada}
+            onSelect={filtrarPorCategoria}
+          />
+        </View>
+
+        {/* 4 · TOP 5 DA SEMANA */}
+        {top5.length > 0 && categoriaSelecionada === "todos" && searchText.trim() === "" && (
+          <View style={styles.secao}>
+            <Top5Semana
+              itens={top5}
+              parcial={rankingParcial}
+              onPressItem={(item: any) =>
+                navigation.navigate("Produto", { produto: lanches.find((l: any) => l.id === item.id) || item })
+              }
+              onVerTodos={() => navigation.navigate("Cardapio")}
             />
           </View>
-        </View>
+        )}
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
-          }
-          contentContainerStyle={styles.scrollContent}
-        >
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriasContainer}>
-            {categorias.map((cat) => (
-              <TouchableOpacity key={cat.id} style={styles.categoriaItem} onPress={() => filtrarPorCategoria(cat.id)}>
-                <View style={[
-                  styles.categoriaIcon,
-                  { backgroundColor: cat.cor + "15" },
-                  categoriaSelecionada === cat.id && { backgroundColor: cat.cor, borderColor: cat.cor, borderWidth: 2 },
-                ]}>
-                  <Text style={[styles.categoriaIconText, categoriaSelecionada === cat.id && { transform: [{ scale: 1.1 }] }]}>{cat.icon}</Text>
-                </View>
-                <Text style={[styles.categoriaNome, categoriaSelecionada === cat.id && { color: cat.cor, fontWeight: "bold" }]}>
-                  {cat.nome}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
-          {lanchesFavoritos.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>❤️ Seus Favoritos</Text>
-              </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.promoScroll}>
-                {lanchesFavoritos.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.promoCard}
-                    onPress={() => navigation.navigate("Produto", { produto: item })}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={{ uri: item.imagem }} style={styles.promoImage} />
-                    <View style={styles.promoOverlay}>
-                      <Text style={styles.promoNome} numberOfLines={2}>{item.nome}</Text>
-                      <Text style={styles.promoPrice}>R$ {item.preco.toFixed(2)}</Text>
-                      <View style={styles.timeBadge}>
-                        <Text style={styles.timeText}>⏱️ {item.tempoPreparo || "15-25"} min</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          {categoriaSelecionada === "todos" && promocoes.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>🎯 Promoções Especiais</Text>
-                <TouchableOpacity onPress={() => filtrarPorCategoria("promocao")}>
-                  <Text style={styles.seeMore}>Ver todos →</Text>
-                </TouchableOpacity>
-              </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.promoScroll}>
-                {promocoes.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.promoCard}
-                    onPress={() => navigation.navigate("Produto", { produto: item })}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={{ uri: item.imagem }} style={styles.promoImage} />
-                    <View style={styles.promoBadge}>
-                      <Text style={styles.promoBadgeText}>🔥 OFF</Text>
-                    </View>
-                    <View style={styles.promoOverlay}>
-                      <Text style={styles.promoNome} numberOfLines={2}>{item.nome}</Text>
-                      <View style={styles.priceRow}>
-                        <Text style={styles.oldPrice}>R$ {item.preco.toFixed(2)}</Text>
-                        <Text style={styles.promoPrice}>R$ {(item.precoPromocional || item.preco).toFixed(2)}</Text>
-                      </View>
-                      <View style={styles.timeBadge}>
-                        <Text style={styles.timeText}>⏱️ {item.tempoPreparo || "15-25"} min</Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                {categoriaSelecionada === "todos" && "🍔 Todos os Lanches"}
-                {categoriaSelecionada === "lanche" && "🍔 Salgados"}
-                {categoriaSelecionada === "bebida" && "🥤 Bebidas"}
-                {categoriaSelecionada === "doce" && "🍰 Doces"}
-                {categoriaSelecionada === "promocao" && "🎉 Em Promoção"}
-              </Text>
-              <View style={styles.countBadge}>
-                <Text style={styles.resultCount}>{filteredLanches.length}</Text>
-              </View>
-            </View>
-
-            {filteredLanches.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyIcon}>🍔</Text>
-                <Text style={styles.emptyText}>Nenhum lanche encontrado</Text>
-                <Text style={styles.emptySubtext}>Tente outra categoria</Text>
-              </View>
-            ) : (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.carouselScroll}
-              >
-                {filteredLanches.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.carouselCard}
-                    onPress={() => navigation.navigate("Produto", { produto: item })}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.carouselImageWrapper}>
-                      <Image source={{ uri: item.imagem }} style={styles.carouselImage} />
-                      {item.promocao && (
-                        <View style={styles.promoBadgeCard}>
-                          <Text style={styles.promoBadgeTextCard}>OFF</Text>
-                        </View>
-                      )}
-                    </View>
-                    <View style={styles.carouselInfo}>
-                      <Text style={styles.carouselNome} numberOfLines={1}>{item.nome}</Text>
-                      <Text style={styles.carouselDesc} numberOfLines={2}>{item.descricao}</Text>
-
-                      <View style={styles.carouselMeta}>
-                        <View style={styles.categoriaBadge}>
-                          <Text style={styles.categoriaBadgeText}>
-                            {item.categorias ? item.categorias.map((c: string) => getCategoriaIcon(c)).join(' ') : (item.categoria === "lanche" ? "🍔" : item.categoria === "bebida" ? "🥤" : "🍰")}
-                          </Text>
-                        </View>
-                        <Text style={styles.rating}>⭐ {(item.mediaAvaliacao || 0).toFixed(1)}</Text>
-                      </View>
-
-                      <View style={styles.carouselPriceRow}>
-                        {item.promocao ? (
-                          <>
-                            <Text style={styles.oldPrice}>R$ {item.preco.toFixed(2)}</Text>
-                            <Text style={styles.carouselPreco}>R$ {(item.precoPromocional || item.preco).toFixed(2)}</Text>
-                          </>
-                        ) : (
-                          <Text style={styles.carouselPreco}>R$ {item.preco.toFixed(2)}</Text>
-                        )}
-                      </View>
-                      <Text style={styles.deliveryTime}>⏱️ {item.tempoPreparo || "15-25"} min</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
+        {/* 5 · MONTE SEU COMBO */}
+        {categoriaSelecionada === "todos" && searchText.trim() === "" && lanches.length > 0 && (
+          <View style={styles.secao}>
+            <ComboCard onPress={() => setComboAberto(true)} />
           </View>
-        </ScrollView>
+        )}
 
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
-            <View style={[styles.navIconContainer, styles.navActiveBg]}>
-              <Text style={[styles.navIcon, styles.navActive]}>🏠</Text>
+        {/* FAVORITOS */}
+        {lanchesFavoritos.length > 0 && (
+          <View style={styles.secao}>
+            <View style={styles.secaoHeader}>
+              <Text style={styles.secaoTitulo}>❤️ Seus favoritos</Text>
             </View>
-            <Text style={[styles.navText, styles.navActiveText]}>Início</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Carrinho")}>
-            <View style={styles.navIconContainer}>
-              <Text style={styles.navIcon}>🛒</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carrossel}
+            >
+              {lanchesFavoritos.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  produto={item}
+                  largura={cardLargura}
+                  onPress={() => navigation.navigate("Produto", { produto: item })}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* PROMOÇÕES */}
+        {categoriaSelecionada === "todos" && promocoes.length > 0 && (
+          <View style={styles.secao}>
+            <View style={styles.secaoHeader}>
+              <Text style={styles.secaoTitulo}>🔥 Promoções especiais</Text>
+              <TouchableOpacity onPress={() => filtrarPorCategoria("promocao")} hitSlop={8}>
+                <Text style={styles.verTodos}>Ver todos →</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.navText}>Carrinho</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("MeusPedidos")}>
-            <View style={styles.navIconContainer}>
-              <Text style={styles.navIcon}>📋</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.carrossel}
+            >
+              {promocoes.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  produto={item}
+                  largura={cardLargura}
+                  onPress={() => navigation.navigate("Produto", { produto: item })}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* 6 · QUASE NOS SEUS FAVORITOS */}
+        {quaseFavoritos.length > 0 && categoriaSelecionada === "todos" && searchText.trim() === "" && (
+          <View style={styles.secao}>
+            <QuaseFavoritos
+              itens={quaseFavoritos}
+              motivo={motivo}
+              largura={cardLargura}
+              onPressItem={(item: any) => navigation.navigate("Produto", { produto: item })}
+              onAdd={(item: any) => adicionarAoCarrinho(item)}
+            />
+          </View>
+        )}
+
+        {/* TODOS OS LANCHES */}
+        <View style={styles.secao}>
+          <View style={styles.secaoHeader}>
+            <Text style={styles.secaoTitulo}>
+              {categorias.find((c) => c.id === categoriaSelecionada)?.nome || "Todos os lanches"}
+            </Text>
+            <View style={styles.contador}>
+              <Text style={styles.contadorTexto}>{filteredLanches.length}</Text>
             </View>
-            <Text style={styles.navText}>Pedidos</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Perfil")}>
-            <View style={styles.navIconContainer}>
-              <Text style={styles.navIcon}>👤</Text>
+          </View>
+
+          {filteredLanches.length === 0 ? (
+            <EmptyState
+              icon="🍽️"
+              titulo="Nenhum lanche por aqui"
+              descricao="Ainda não temos itens nesta categoria. Tente outra ou volte mais tarde!"
+            />
+          ) : (
+            <View style={styles.grade}>
+              {filteredLanches.map((item) => (
+                <View key={item.id} style={{ width: cardLargura }}>
+                  <ProductCard
+                    produto={item}
+                    onPress={() => navigation.navigate("Produto", { produto: item })}
+                  />
+                </View>
+              ))}
             </View>
-            <Text style={styles.navText}>Perfil</Text>
-          </TouchableOpacity>
+          )}
         </View>
-      </View>
+      </ScrollView>
+
+      <BottomNavigation
+        abas={ABAS_PRINCIPAIS}
+        ativa="Home"
+        onSelect={(key) => navigation.navigate(key)}
+      />
+
+      <ComboBuilder
+        visivel={comboAberto}
+        onFechar={() => setComboAberto(false)}
+        lanches={lanches}
+      />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background },
-  loadingText: { marginTop: spacing.md, color: colors.primary, fontSize: 16, fontWeight: "500" },
+  scrollContent: { paddingBottom: spacing.xxl },
+
   header: {
-    backgroundColor: colors.primary,
-    paddingTop: 50,
+    paddingHorizontal: spacing.xl,
     paddingBottom: spacing.lg,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    backgroundColor: colors.background,
   },
   headerTop: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: spacing.xl,
-    marginBottom: spacing.lg,
+    gap: spacing.md,
   },
-  headerContent: { flex: 1 },
-  greeting: { fontSize: 24, fontWeight: "bold", color: colors.white, marginBottom: spacing.xs },
-  subtitle: { fontSize: 14, color: "rgba(255,255,255,0.8)" },
-  profileButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "rgba(255,255,255,0.2)",
+  headerTextos: { flex: 1 },
+  saudacao: { ...typography.h2, fontSize: 23 },
+  subtitulo: { color: colors.textSecondary, fontSize: 13, marginTop: 2 },
+  headerAcoes: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  perfilBotao: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center",
-    marginLeft: spacing.md,
   },
-  profileIcon: { fontSize: 24 },
-  searchContainer: {
+  perfilIcone: { fontSize: 20 },
+
+  busca: { marginTop: spacing.lg },
+
+  bloco: { paddingHorizontal: spacing.xl, marginTop: spacing.xl },
+  cardsRow: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.white,
-    marginHorizontal: spacing.xl,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.round,
-    height: 48,
-    ...shadows.small,
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.lg,
   },
-  searchIcon: { fontSize: 18, color: colors.textLight, marginRight: spacing.sm },
-  searchInput: { flex: 1, fontSize: 15, color: colors.text },
-  scrollContent: { paddingBottom: 100 },
-  categoriasContainer: { paddingHorizontal: spacing.lg, marginTop: spacing.xl, marginBottom: spacing.md },
-  categoriaItem: { alignItems: "center", marginRight: spacing.lg },
-  categoriaIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: spacing.sm,
-  },
-  categoriaIconText: { fontSize: 30 },
-  categoriaNome: { fontSize: 11, color: colors.textSecondary },
-  section: { marginBottom: spacing.xl },
-  sectionHeader: {
+  categoriasBloco: { marginTop: spacing.lg },
+
+  secao: { marginTop: spacing.xxl },
+  secaoHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: spacing.xl,
     marginBottom: spacing.md,
+    gap: spacing.md,
   },
-  sectionTitle: { fontSize: 18, fontWeight: "bold", color: colors.text },
-  countBadge: {
-    backgroundColor: colors.primary + "20",
+  secaoTitulo: { ...typography.h3, fontSize: 17 },
+  verTodos: { color: colors.primaryText, fontSize: 13, fontWeight: "700" },
+  contador: {
+    backgroundColor: colors.glowSoft,
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  resultCount: { fontSize: 12, color: colors.primary, fontWeight: "bold" },
-  seeMore: { color: colors.primary, fontSize: 14, fontWeight: "600" },
-  promoScroll: { paddingLeft: spacing.xl, paddingRight: spacing.sm },
-  carouselScroll: { paddingLeft: spacing.xl, paddingRight: spacing.sm, gap: 12 },
-  carouselCard: {
-    backgroundColor: colors.card,
-    width: 200,
-    borderRadius: borderRadius.xl,
-    overflow: "hidden",
-    ...shadows.medium,
-  },
-  carouselImageWrapper: { position: "relative" },
-  carouselImage: { width: "100%", height: 120, resizeMode: "cover" },
-  carouselInfo: { padding: spacing.md },
-  carouselNome: { fontSize: 14, fontWeight: "bold", color: colors.text, marginBottom: spacing.xs },
-  carouselDesc: { fontSize: 11, color: colors.textSecondary, marginBottom: spacing.sm, lineHeight: 15 },
-  carouselMeta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm },
-  carouselPriceRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, marginBottom: spacing.xs },
-  carouselPreco: { fontSize: 16, fontWeight: "bold", color: colors.primary },
-  promoCard: {
-    backgroundColor: colors.card,
-    width: 180,
-    marginRight: spacing.md,
-    borderRadius: borderRadius.xl,
-    overflow: "hidden",
-    ...shadows.medium,
-  },
-  promoImage: { width: "100%", height: 130, resizeMode: "cover" },
-  promoOverlay: { padding: spacing.md },
-  promoNome: { fontSize: 14, fontWeight: "600", color: colors.text, marginBottom: spacing.xs },
-  priceRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.xs },
-  oldPrice: { fontSize: 12, color: colors.textLight, textDecorationLine: "line-through" },
-  promoPrice: { fontSize: 16, fontWeight: "bold", color: colors.primary },
-  timeBadge: {
-    backgroundColor: colors.secondary + "15",
-    paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 8,
-    alignSelf: "flex-start",
+    borderRadius: borderRadius.round,
   },
-  timeText: { fontSize: 10, color: colors.secondary, fontWeight: "600" },
-  categoriaBadge: {
-    backgroundColor: colors.primary + "10",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  categoriaBadgeText: { fontSize: 11, color: colors.primary, fontWeight: "500" },
-  rating: { fontSize: 12, fontWeight: "bold", color: colors.warning },
-  deliveryTime: { fontSize: 11, color: colors.secondary, fontWeight: "500" },
-  promoBadgeCard: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    backgroundColor: colors.danger,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  promoBadgeTextCard: { color: colors.white, fontSize: 10, fontWeight: "bold" },
-  promoBadge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    backgroundColor: colors.danger,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
-    zIndex: 1,
-  },
-  promoBadgeText: { color: colors.white, fontSize: 10, fontWeight: "bold" },
-  errorText: { fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 10, textAlign: "center", paddingHorizontal: 20 },
-  errorSubtext: { fontSize: 14, color: colors.textLight, textAlign: "center", paddingHorizontal: 20 },
-  emptyContainer: { alignItems: "center", paddingVertical: 50 },
-  emptyIcon: { fontSize: 60, marginBottom: spacing.md },
-  emptyText: { fontSize: 16, fontWeight: "bold", color: colors.text, marginBottom: spacing.xs },
-  emptySubtext: { fontSize: 12, color: colors.textLight },
-  bottomNav: {
+  contadorTexto: { fontSize: 11, color: colors.primaryText, fontWeight: "800" },
+
+  carrossel: { paddingHorizontal: spacing.xl, gap: spacing.md },
+
+  grade: {
     flexDirection: "row",
-    backgroundColor: colors.card,
-    paddingVertical: spacing.sm,
-    paddingBottom: Platform.OS === "ios" ? 24 : spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    ...shadows.medium,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    flexWrap: "wrap",
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    justifyContent: "space-between",
   },
-  navItem: { flex: 1, alignItems: "center", justifyContent: "center" },
-  navIconContainer: {
-    width: 40,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 2,
-  },
-  navActiveBg: { backgroundColor: colors.primary + "15" },
-  navIcon: { fontSize: 20, color: colors.textLight },
-  navText: { fontSize: 10, color: colors.textLight },
-  navActive: { color: colors.primary },
-  navActiveText: { color: colors.primary, fontWeight: "600" },
 });

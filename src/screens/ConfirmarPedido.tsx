@@ -20,6 +20,7 @@ export default function ConfirmarPedido({ route, navigation }: any) {
     pagarComPIX,
     TOTAL,
     DESCONTO_PONTOS,
+    DESCONTO_COMBO,
     TOTAL_FINAL,
     PONTOS_GANHOS,
     dataRetiradaObj,
@@ -130,6 +131,12 @@ export default function ConfirmarPedido({ route, navigation }: any) {
                 <Text style={styles.resumoValueDesconto}>- R$ {DESCONTO_PONTOS.toFixed(2)}</Text>
               </View>
             )}
+            {DESCONTO_COMBO > 0 && (
+              <View style={styles.resumoRow}>
+                <Text style={styles.resumoLabelDesconto}>Desconto combo</Text>
+                <Text style={styles.resumoValueDesconto}>- R$ {DESCONTO_COMBO.toFixed(2)}</Text>
+              </View>
+            )}
             <View style={styles.divisor} />
             <View style={styles.resumoTotal}>
               <Text style={styles.totalLabel}>TOTAL</Text>
@@ -178,8 +185,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: spacing.xl,
-    paddingTop: Platform.OS === "ios" ? 50 : spacing.xl,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     ...shadows.small,
@@ -187,7 +193,7 @@ const styles = StyleSheet.create({
   titulo: { fontSize: 20, fontWeight: "bold", color: colors.text },
   scrollContent: { paddingBottom: 100 },
   section: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     marginTop: spacing.md,
     marginHorizontal: spacing.lg,
     paddingHorizontal: spacing.xl,
@@ -212,7 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: spacing.md,
   },
-  quantityBadgeText: { fontSize: 13, fontWeight: "bold", color: colors.primary },
+  quantityBadgeText: { fontSize: 13, fontWeight: "bold", color: colors.primaryText },
   orderItemInfo: { flex: 1 },
   orderItemName: { fontSize: 15, fontWeight: "600", color: colors.text, marginBottom: 2 },
   localRetiradaText: { fontSize: 11, color: colors.textLight, fontStyle: "italic" },
@@ -237,7 +243,7 @@ const styles = StyleSheet.create({
   fidelidadeIcon: { fontSize: 24 },
   fidelidadeInfo: { flex: 1 },
   fidelidadeTitle: { fontSize: 15, fontWeight: "bold", color: colors.text, marginBottom: 2 },
-  fidelidadePontos: { fontSize: 22, fontWeight: "bold", color: colors.primary, marginBottom: 2 },
+  fidelidadePontos: { fontSize: 22, fontWeight: "bold", color: colors.primaryText, marginBottom: 2 },
   fidelidadeDescricao: { fontSize: 12, color: colors.textSecondary, marginBottom: spacing.sm },
   usarPontosButton: {
     backgroundColor: colors.primary + "15",
@@ -248,7 +254,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   usarPontosButtonActive: { backgroundColor: colors.danger + "15" },
-  usarPontosButtonText: { color: colors.primary, fontWeight: "600", fontSize: 13 },
+  usarPontosButtonText: { color: colors.primaryText, fontWeight: "600", fontSize: 13 },
   pontosInfo: {
     marginTop: spacing.sm,
     padding: spacing.md,
@@ -284,7 +290,7 @@ const styles = StyleSheet.create({
   divisor: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
   resumoTotal: { flexDirection: "row", justifyContent: "space-between", marginTop: spacing.sm },
   totalLabel: { fontSize: 18, fontWeight: "bold", color: colors.text },
-  totalValue: { fontSize: 22, fontWeight: "bold", color: colors.primary },
+  totalValue: { fontSize: 22, fontWeight: "bold", color: colors.primaryText },
   pontosGanhosCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -312,7 +318,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     padding: spacing.xl,
     paddingBottom: Platform.OS === "ios" ? 30 : spacing.xl,
     borderTopLeftRadius: 24,

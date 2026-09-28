@@ -5,6 +5,7 @@ import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, signOu
 import { auth, db } from '../database/database';
 import * as ImagePicker from 'expo-image-picker';
 import { IMGBB_API_KEY } from '@env';
+import type { DocumentoFirestore } from "../types/models";
 
 export function usePerfilLogic(navigation: any) {
   const [userData, setUserData] = useState<any>({});
@@ -71,7 +72,7 @@ export function usePerfilLogic(navigation: any) {
 
       const pedidosQuery = query(collection(db, 'pedidos'), where('vendedorId', '==', auth.currentUser.uid), orderBy('criadoEm', 'desc'));
       const pedidosSnap = await getDocs(pedidosQuery);
-      const pedidosLista = pedidosSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const pedidosLista: DocumentoFirestore[] = pedidosSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setPedidosRecebidos(pedidosLista);
 
       const hoje = new Date();
@@ -86,7 +87,7 @@ export function usePerfilLogic(navigation: any) {
 
       const avaliacoesQuery = query(collection(db, 'avaliacoes_vendedor'), where('vendedorId', '==', auth.currentUser.uid), orderBy('criadoEm', 'desc'));
       const avaliacoesSnap = await getDocs(avaliacoesQuery);
-      const listaAvaliacoes = avaliacoesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const listaAvaliacoes: DocumentoFirestore[] = avaliacoesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setAvaliacoesRecebidas(listaAvaliacoes);
       const soma = listaAvaliacoes.reduce((acc, av) => acc + av.nota, 0);
       setMediaAvaliacaoVendedor(listaAvaliacoes.length ? soma / listaAvaliacoes.length : 0);

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { query, collection, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../database/database';
+import { colors } from "../styles/theme";
 
 export function useMeusPedidosLogic(navigation: any) {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -59,15 +60,15 @@ export function useMeusPedidosLogic(navigation: any) {
 
   function getStatusColor(status: string) {
     const colorMap: { [key: string]: string } = {
-      pendente: '#FFA500',
-      pago: '#3498db',
-      homologada: '#27ae60',
-      processando: '#3498db',
-      pronto: '#27ae60',
-      retirado: '#2ecc71',
-      cancelado: '#e74c3c',
+      pendente: colors.warning,
+      pago: colors.info,
+      homologada: colors.success,
+      processando: colors.info,
+      pronto: colors.success,
+      retirado: colors.success,
+      cancelado: colors.danger,
     };
-    return colorMap[status] || '#999';
+    return colorMap[status] || colors.textLight;
   }
 
   function abrirDetalhes(pedido: any) {

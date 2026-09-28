@@ -4,6 +4,7 @@ import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../database/database';
 import * as ImagePicker from 'expo-image-picker';
 import { IMGBB_API_KEY } from '@env';
+import { colors } from "../styles/theme";
 
 export function useEditarLancheLogic(route: any, navigation: any) {
   const { lanche } = route.params;
@@ -26,7 +27,7 @@ export function useEditarLancheLogic(route: any, navigation: any) {
   const [tempoPreparo, setTempoPreparo] = useState(
     String(lanche.tempoPreparo || '15-25')
   );
-  const [ingredientes, setIngredientes] = useState(
+  const [ingredientes, setIngredientes] = useState<string>(
     lanche.ingredientes?.join(', ') || ''
   );
   const [localRetirada, setLocalRetirada] = useState(lanche.localRetirada || '');
@@ -35,9 +36,9 @@ export function useEditarLancheLogic(route: any, navigation: any) {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const opcoesCategorias = [
-    { id: 'lanche', label: '🍔 Salgado', cor: '#FF6B6B' },
-    { id: 'doce', label: '🍰 Doce', cor: '#FFE66D' },
-    { id: 'bebida', label: '🥤 Bebida', cor: '#4ECDC4' },
+    { id: 'lanche', label: '🍔 Salgado', cor: colors.category.lanche },
+    { id: 'doce', label: '🍰 Doce', cor: colors.category.doce },
+    { id: 'bebida', label: '🥤 Bebida', cor: colors.category.bebida },
   ];
 
   function toggleCategoria(catId: string) {

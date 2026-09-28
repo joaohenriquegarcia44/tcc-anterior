@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { useQRCodePedidoLogic } from "../hooks/useQRCodePedidoLogic";
+import { colors } from "../styles/theme";
 
 export default function QRCodePedido({ route, navigation }: any) {
   const { pedidos } = useQRCodePedidoLogic(route);
@@ -50,27 +51,27 @@ export default function QRCodePedido({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: { flex: 1, padding: 20, backgroundColor: colors.background },
   titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
   card: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.card,
     borderRadius: 10,
     padding: 20,
     marginBottom: 20,
     elevation: 3,
     alignItems: "center",
   },
-  vendedor: { fontSize: 14, color: "#666", marginBottom: 15 },
+  vendedor: { fontSize: 14, color: colors.textSecondary, marginBottom: 15 },
   qrContainer: { marginVertical: 20 },
-  codigoNumerico: { fontSize: 16, fontWeight: "bold", color: "#333", marginTop: 10, textAlign: "center" },
-  total: { fontSize: 18, fontWeight: "bold", color: "#27ae60", marginTop: 10 },
-  data: { fontSize: 14, color: "#e74c3c", marginTop: 5 },
+  codigoNumerico: { fontSize: 16, fontWeight: "bold", color: colors.text, marginTop: 10, textAlign: "center" },
+  total: { fontSize: 18, fontWeight: "bold", color: colors.success, marginTop: 10 },
+  data: { fontSize: 14, color: colors.danger, marginTop: 5 },
   botaoVoltar: {
-    backgroundColor: "#3498db",
+    backgroundColor: colors.info,
     padding: 15,
     borderRadius: 8,
     marginTop: 10,
     marginBottom: 30,
   },
-  botaoTexto: { color: "#fff", textAlign: "center", fontWeight: "bold" },
+  botaoTexto: { color: colors.white, textAlign: "center", fontWeight: "bold" },
 });

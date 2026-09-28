@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { collection, getDocs, deleteDoc, doc, query, where, getDoc } from 'firebase/firestore';
 import { db, auth } from '../database/database';
+import { colors } from "../styles/theme";
 
 export function usePainelVendedorLogic(navigation: any) {
   const [lanches, setLanches] = useState<any[]>([]);
@@ -93,10 +94,10 @@ export function usePainelVendedorLogic(navigation: any) {
   const promocoes = lanches.filter(l => l.promocao === true);
 
   const sections = [
-    { title: '🍔 Salgados', data: salgados, color: '#FF6B6B' },
-    { title: '🍰 Doces', data: doces, color: '#FFE66D' },
-    { title: '🥤 Bebidas', data: bebidas, color: '#4ECDC4' },
-    { title: '🔥 Promoções', data: promocoes, color: '#FF9F40' },
+    { title: '🍔 Salgados', data: salgados, color: colors.category.lanche },
+    { title: '🍰 Doces', data: doces, color: colors.category.doce },
+    { title: '🥤 Bebidas', data: bebidas, color: colors.category.bebida },
+    { title: '🔥 Promoções', data: promocoes, color: colors.category.promocao },
   ].filter(section => section.data.length > 0);
 
   return {

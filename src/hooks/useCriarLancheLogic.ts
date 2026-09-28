@@ -4,6 +4,7 @@ import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../database/database';
 import * as ImagePicker from 'expo-image-picker';
 import { IMGBB_API_KEY } from '@env';
+import { colors } from "../styles/theme";
 
 export function useCriarLancheLogic(navigation: any) {
   const [nome, setNome] = useState('');
@@ -22,9 +23,9 @@ export function useCriarLancheLogic(navigation: any) {
   const [permissaoVerificada, setPermissaoVerificada] = useState(false);
 
   const opcoesCategorias = [
-    { id: 'lanche', label: '🍔 Salgado', cor: '#FF6B6B' },
-    { id: 'doce', label: '🍰 Doce', cor: '#FFE66D' },
-    { id: 'bebida', label: '🥤 Bebida', cor: '#4ECDC4' },
+    { id: 'lanche', label: '🍔 Salgado', cor: colors.category.lanche },
+    { id: 'doce', label: '🍰 Doce', cor: colors.category.doce },
+    { id: 'bebida', label: '🥤 Bebida', cor: colors.category.bebida },
   ];
 
   useEffect(() => {

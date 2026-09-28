@@ -4,12 +4,23 @@ import StackNavigator from "./src/navigation/StackNavigator";
 import { CartProvider, CartContext } from "./src/services/CartContext";
 import { auth } from "./src/database/database";
 import { onAuthStateChanged } from "firebase/auth";
-import { ActivityIndicator, View, Text, Alert } from "react-native";
+import { Alert } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useURL } from "expo-linking";
+import { useFonts } from "expo-font";
+import { DancingScript_700Bold } from "@expo-google-fonts/dancing-script";
+import { PlayfairDisplay_700Bold } from "@expo-google-fonts/playfair-display";
+import { fonts } from "./src/styles/theme";
+import Splash from "./src/screens/Splash";
 
 export default function App() {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [fontesCarregadas] = useFonts({
+    [fonts.logo]: DancingScript_700Bold,
+    [fonts.display]: PlayfairDisplay_700Bold,
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
@@ -19,21 +30,23 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  if (loading) {
+  // Splash enquanto o Firebase resolve a sessão e as fontes da identidade carregam.
+  if (loading || !fontesCarregadas) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
-        <Text style={{ marginTop: 10, fontSize: 16 }}>Carregando...</Text>
-      </View>
+      <SafeAreaProvider>
+        <Splash />
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <CartProvider>
-      <NavigationContainer>
-        <AppContent />
-      </NavigationContainer>
-    </CartProvider>
+    <SafeAreaProvider>
+      <CartProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+      </CartProvider>
+    </SafeAreaProvider>
   );
 }
 

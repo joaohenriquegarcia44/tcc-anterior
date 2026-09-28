@@ -15,6 +15,9 @@ import { CartContext } from "../services/CartContext";
 import { collection, query, where, getDocs, orderBy, limit, doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import StarRating from "../components/StarRating";
+import FoodImage from "../components/FoodImage";
+import QuantitySelector from "../components/QuantitySelector";
+import PrimaryButton from "../components/PrimaryButton";
 import { colors, spacing, borderRadius, shadows } from "../styles/theme";
 
 export default function Produto({ route, navigation }: any) {
@@ -31,6 +34,10 @@ export default function Produto({ route, navigation }: any) {
   const precoAtual = produto.promocao && produto.precoPromocional ? produto.precoPromocional : produto.preco;
   const precoOriginal = produto.promocao ? produto.preco : null;
   const descontoPercentual = precoOriginal ? Math.round(((precoOriginal - precoAtual) / precoOriginal) * 100) : 0;
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({ title: produto.nome });
+  }, [navigation, produto.nome]);
 
   useEffect(() => {
     verificarFavorito();
@@ -119,9 +126,14 @@ export default function Produto({ route, navigation }: any) {
       }
       return;
     }
+    let adicionados = 0;
     for (let i = 0; i < quantidade; i++) {
-      adicionarAoCarrinho({ ...produto, preco: precoAtual });
+      if (adicionarAoCarrinho({ ...produto, preco: precoAtual })) adicionados++;
     }
+
+    // Anunciante não compra o próprio lanche: sem confirmação visual de carrinho.
+    if (adicionados === 0) return;
+
     setShowModal(true);
     setTimeout(() => setShowModal(false), 1500);
   }
@@ -154,10 +166,15 @@ export default function Produto({ route, navigation }: any) {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.imageContainer}>
-          <Image source={{ uri: produto.imagem }} style={styles.imagem} />
-          <View style={styles.imageOverlay} />
+          <FoodImage
+            uri={produto.imagem}
+            style={styles.imagem}
+            radius={0}
+            fallbackIcon="🍔"
+            overlay
+          />
 
-          <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorito}>
+          <TouchableOpacity style={styles.favoriteButton} onPress={toggleFavorito} accessibilityLabel="Favoritar">
             <Text style={styles.favoriteIcon}>{isFavorito ? "❤️" : "🤍"}</Text>
           </TouchableOpacity>
 
@@ -176,12 +193,11 @@ export default function Produto({ route, navigation }: any) {
           <View style={styles.headerInfo}>
             {produto.categoria && (
               <View style={[styles.categoriaBadge, { backgroundColor: getCorCategoria(produto.categoria) + "15" }]}>
-                <Text style={[styles.categoriaText, { color: getCorCategoria(produto.categoria) }]}>
+                <Text style={[styles.categoriaText, { color: getCorCategoriaTexto(produto.categoria) }]}>
                   {getNomeCategoria(produto.categoria)}
                 </Text>
               </View>
             )}
-            <Text style={styles.nome}>{produto.nome}</Text>
           </View>
 
           <View style={styles.ratingSection}>
@@ -327,18 +343,13 @@ export default function Produto({ route, navigation }: any) {
 
       {estaDisponivel && (
         <View style={styles.bottomBar}>
-          <View style={styles.quantidadeContainer}>
-            <TouchableOpacity style={styles.quantidadeButton} onPress={decrementar}>
-              <Text style={styles.quantidadeButtonText}>-</Text>
-            </TouchableOpacity>
-            <Text style={styles.quantidade}>{quantidade}</Text>
-            <TouchableOpacity style={styles.quantidadeButton} onPress={incrementar}>
-              <Text style={styles.quantidadeButtonText}>+</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity style={styles.botaoComprar} onPress={adicionarAoCarrinhoComQuantidade} activeOpacity={0.8}>
-            <Text style={styles.botaoComprarTexto}>Adicionar • R$ {(precoAtual * quantidade).toFixed(2)}</Text>
-          </TouchableOpacity>
+          <QuantitySelector quantidade={quantidade} onDecrease={decrementar} onIncrease={incrementar} />
+          <PrimaryButton
+            title={`Adicionar • R$ ${(precoAtual * quantidade).toFixed(2)}`}
+            onPress={adicionarAoCarrinhoComQuantidade}
+            variant="white"
+            style={styles.botaoComprar}
+          />
         </View>
       )}
 
@@ -357,8 +368,22 @@ export default function Produto({ route, navigation }: any) {
 }
 
 function getCorCategoria(categoria: string): string {
-  const cores: Record<string, string> = { lanche: "#FF6B6B", bebida: "#4ECDC4", doce: "#FFE66D", promocao: "#FF6B6B" };
-  return cores[categoria] || "#FF6B6B";
+  const cores: Record<string, string> = {
+    lanche: colors.category.lanche,
+    bebida: colors.category.bebida,
+    doce: colors.category.doce,
+    promocao: colors.category.promocao,
+  };
+  return cores[categoria] || colors.primary;
+}
+function getCorCategoriaTexto(categoria: string): string {
+  const cores: Record<string, string> = {
+    lanche: colors.categoryText.lanche,
+    bebida: colors.categoryText.bebida,
+    doce: colors.categoryText.doce,
+    promocao: colors.categoryText.promocao,
+  };
+  return cores[categoria] || colors.primaryText;
 }
 function getNomeCategoria(categoria: string): string {
   const nomes: Record<string, string> = { lanche: "🍔 Lanche", bebida: "🥤 Bebida", doce: "🍰 Doce", promocao: "🎉 Promoção" };
@@ -380,12 +405,12 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     position: "absolute",
-    top: Platform.OS === "ios" ? 50 : 40,
+    top: spacing.md,
     right: 20,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: "rgba(255,255,255,0.92)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -416,7 +441,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   categoriaText: { fontSize: 12, fontWeight: "600" },
-  nome: { fontSize: 26, fontWeight: "bold", color: colors.text },
   ratingSection: { flexDirection: "row", alignItems: "center", marginBottom: spacing.lg },
   ratingText: { marginLeft: 8, fontSize: 14, color: colors.textSecondary },
   priceSection: { marginBottom: spacing.lg },
@@ -429,7 +453,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   precoOriginal: { fontSize: 14, color: colors.textLight, textDecorationLine: "line-through" },
-  preco: { fontSize: 30, fontWeight: "bold", color: colors.primary },
+  preco: { fontSize: 30, fontWeight: "bold", color: colors.primaryText },
   economiaBadge: {
     backgroundColor: colors.success + "20",
     paddingHorizontal: 12,
@@ -471,7 +495,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
-  ingredienteText: { fontSize: 13, color: colors.primary, fontWeight: "500" },
+  ingredienteText: { fontSize: 13, color: colors.primaryText, fontWeight: "500" },
   infoCard: { backgroundColor: colors.card, borderRadius: borderRadius.lg, padding: spacing.lg, ...shadows.small },
   infoRow: { flexDirection: "row", alignItems: "center", paddingVertical: spacing.sm },
   infoIconContainer: {
@@ -517,7 +541,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     padding: spacing.lg,
     paddingBottom: Platform.OS === "ios" ? 30 : spacing.lg,
     borderTopWidth: 1,
@@ -540,25 +564,19 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.surfaceAlt,
     borderRadius: borderRadius.md,
     ...shadows.small,
   },
-  quantidadeButtonText: { fontSize: 22, fontWeight: "bold", color: colors.primary },
+  quantidadeButtonText: { fontSize: 22, fontWeight: "bold", color: colors.primaryText },
   quantidade: { fontSize: 20, fontWeight: "bold", marginHorizontal: spacing.lg, color: colors.text },
   botaoComprar: {
     flex: 1,
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: borderRadius.lg,
-    alignItems: "center",
     marginLeft: spacing.md,
-    ...shadows.medium,
   },
-  botaoComprarTexto: { color: colors.white, fontSize: 17, fontWeight: "bold" },
-  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.overlay },
   modalContent: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     padding: spacing.xxl,
     borderRadius: borderRadius.xl,
     alignItems: "center",

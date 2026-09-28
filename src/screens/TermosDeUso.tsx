@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from "../styles/theme";
 
 export default function TermosDeUso() {
   return (
@@ -108,12 +109,12 @@ export default function TermosDeUso() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8f8f8" },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
-  titulo: { fontSize: 28, fontWeight: "bold", marginBottom: 8, textAlign: "center", color: "#333" },
-  data: { fontSize: 14, color: "#999", textAlign: "center", marginBottom: 24 },
-  subtitulo: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10, color: "#FF6B6B" },
-  texto: { fontSize: 14, color: "#666", lineHeight: 22, marginBottom: 10 },
-  lista: { fontSize: 14, color: "#666", lineHeight: 22, marginLeft: 16, marginBottom: 6 },
-  contato: { fontSize: 14, color: "#FF6B6B", textAlign: "center", marginTop: 30, marginBottom: 20, fontWeight: "500" },
+  titulo: { fontSize: 28, fontWeight: "bold", marginBottom: 8, textAlign: "center", color: colors.text },
+  data: { fontSize: 14, color: colors.textLight, textAlign: "center", marginBottom: 24 },
+  subtitulo: { fontSize: 18, fontWeight: "bold", marginTop: 20, marginBottom: 10, color: colors.primaryText },
+  texto: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 10 },
+  lista: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginLeft: 16, marginBottom: 6 },
+  contato: { fontSize: 14, color: colors.primaryText, textAlign: "center", marginTop: 30, marginBottom: 20, fontWeight: "500" },
 });

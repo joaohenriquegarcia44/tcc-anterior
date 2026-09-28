@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { colors } from "../styles/theme";
 
 interface StarRatingProps {
   rating: number;
@@ -42,9 +43,9 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   starFilled: {
-    color: "#FFB800",
+    color: colors.warning,
   },
   starEmpty: {
-    color: "#ddd",
+    color: colors.border,
   },
 });
