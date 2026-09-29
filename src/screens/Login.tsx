@@ -8,13 +8,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { useLoginLogic } from "../hooks/useLoginLogic";
 import BrandLogo from "../components/BrandLogo";
 import PrimaryButton from "../components/PrimaryButton";
 import { colors, borderRadius, spacing, hitSize, shadows } from "../styles/theme";
+
+/** Foto de hambúrguer usada como fundo da tela de login. */
+const FOTO_LOGIN = require("../../assets/burger-hero.jpg");
 
 export default function Login() {
   const navigation = useNavigation();
@@ -41,7 +46,17 @@ export default function Login() {
   } = useLoginLogic(navigation, isNavigatorReady);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={styles.container}>
+      {/* Foto de lanche ao fundo, escurecida para o conteúdo continuar legível */}
+      <Image source={FOTO_LOGIN} style={styles.fotoFundo} resizeMode="cover" />
+      <LinearGradient
+        colors={["rgba(5,5,5,0.45)", "rgba(5,5,5,0.86)", colors.background]}
+        locations={[0, 0.34, 0.62]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+
+      <SafeAreaView style={styles.flex} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -52,8 +67,6 @@ export default function Login() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.brilhoFundo} pointerEvents="none" />
-
           <View style={styles.topo}>
             <BrandLogo tamanho={38} />
             <Text style={styles.frase}>
@@ -143,7 +156,8 @@ export default function Login() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -156,15 +170,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
     justifyContent: "center",
   },
-  brilhoFundo: {
-    position: "absolute",
-    top: -160,
-    left: -80,
-    width: 340,
-    height: 340,
-    borderRadius: 170,
-    backgroundColor: colors.glow,
-  },
+  fotoFundo: { ...StyleSheet.absoluteFillObject, width: '100%', height: '62%' },
   topo: { marginBottom: spacing.xxl },
   frase: {
     color: colors.textSecondary,

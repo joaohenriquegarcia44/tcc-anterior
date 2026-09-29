@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFidelidadeLogic } from "../hooks/useFidelidadeLogic";
 import { colors, spacing, borderRadius, shadows, typography } from "../styles/theme";
-import ScreenHeader from "../components/ScreenHeader";
 import LoyaltyCard from "../components/LoyaltyCard";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
@@ -12,7 +11,7 @@ import LoadingState from "../components/LoadingState";
  * Fidelidade em modo somente leitura.
  * Os pontos exibidos vêm de `usuarios/{uid}.pontos`; nenhuma regra é aplicada aqui.
  */
-export default function Fidelidade({ navigation }: any) {
+export default function Fidelidade() {
   const { pontos, loading, erro } = useFidelidadeLogic();
 
   if (loading) {
@@ -21,12 +20,6 @@ export default function Fidelidade({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <ScreenHeader
-        titulo="Fidelidade"
-        subtitulo="Quanto mais você pede, mais ganha"
-        onBack={() => navigation.goBack()}
-      />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

@@ -4,7 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors, borderRadius } from '../styles/theme';
 
 type Props = {
-  uri?: string | null;
+  /** URL remota (string) ou imagem local via require() (number). */
+  uri?: string | number | null;
   style?: StyleProp<ViewStyle>;
   imageStyle?: StyleProp<ImageStyle>;
   radius?: number;
@@ -31,6 +32,8 @@ export default function FoodImage({
 }: Props) {
   const [erro, setErro] = React.useState(false);
   const semFoto = !uri || erro;
+  // require() devolve um número; URL vem como string.
+  const source = typeof uri === 'number' ? uri : { uri: uri as string };
 
   return (
     <View style={[styles.container, { borderRadius: radius }, style]}>
@@ -45,7 +48,7 @@ export default function FoodImage({
         </LinearGradient>
       ) : (
         <Image
-          source={{ uri: uri as string }}
+          source={source as any}
           style={[styles.image, { borderRadius: radius }, imageStyle]}
           resizeMode="cover"
           onError={() => setErro(true)}

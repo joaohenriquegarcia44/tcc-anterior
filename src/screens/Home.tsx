@@ -35,6 +35,9 @@ import { useRankingSemanaLogic } from "../hooks/useRankingSemanaLogic";
 import { useRecomendacoesLogic } from "../hooks/useRecomendacoesLogic";
 import { ABAS_PRINCIPAIS } from "../navigation/tabs";
 
+/** Foto de hambúrguer usada como fundo do convite "Ver cardápio". */
+const FOTO_CARDAPIO = require("../../assets/burger-hero.jpg");
+
 export default function Home({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -68,8 +71,9 @@ export default function Home({ navigation }: any) {
     auth.currentUser?.email?.split("@")[0] ||
     "Aluno";
 
-  // A foto do banner vem de um lanche real do Firestore (sem imagem fictícia fixa).
-  const imagemBanner = promocoes[0]?.imagem || filteredLanches[0]?.imagem || null;
+  // A foto do banner vem de um lanche real do Firestore; se ainda não houver
+  // nenhum publicado, cai na foto de hambúrguer que vem com o app.
+  const imagemBanner = promocoes[0]?.imagem || filteredLanches[0]?.imagem || FOTO_CARDAPIO;
 
   const cardLargura = Math.min(300, (width - spacing.xl * 2 - spacing.md) / 2);
 

@@ -434,9 +434,9 @@ export default function Perfil({ navigation }: any) {
 
             {isAdmin && (
               <View style={styles.adminActionsRow}>
-                <TouchableOpacity style={styles.adminActionCard} onPress={() => navigation.navigate("PainelVendedor")} activeOpacity={0.8}>
+                <TouchableOpacity style={styles.adminActionCard} onPress={() => navigation.navigate("Vendas")} activeOpacity={0.8}>
                   <View style={[styles.adminActionIcon, { backgroundColor: "rgba(255,107,107,0.15)" }]}>
-                    <Ionicons name="storefront" size={22} color={colors.primary} />
+                    <Ionicons name="stats-chart" size={22} color={colors.primary} />
                   </View>
                   <Text style={styles.adminActionTitle}>Vendas</Text>
                   <Text style={styles.adminActionSub}>Painel do vendedor</Text>

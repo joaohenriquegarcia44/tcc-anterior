@@ -9,7 +9,8 @@ type Props = {
   subtitulo?: string;
   cta?: string;
   onCta?: () => void;
-  imagem?: string | null;
+  /** URL remota (string) ou imagem local via require() (number). */
+  imagem?: string | number | null;
   altura?: number;
   style?: ViewStyle;
   children?: React.ReactNode;

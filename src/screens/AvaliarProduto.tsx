@@ -97,6 +97,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlignVertical: "top",
     minHeight: 100,
+    backgroundColor: colors.input,
+    color: colors.text,
   },
   botao: {
     backgroundColor: colors.primary,

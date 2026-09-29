@@ -15,7 +15,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { collection, getDocs, deleteDoc, doc, query, where, updateDoc, getDoc } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import { colors, spacing, borderRadius, shadows, typography } from "../styles/theme";
-import ScreenHeader from "../components/ScreenHeader";
 import AdminCard from "../components/AdminCard";
 import FoodImage from "../components/FoodImage";
 import PrimaryButton from "../components/PrimaryButton";
@@ -217,12 +216,6 @@ export default function PainelVendedor({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
-      <ScreenHeader
-        titulo="Painel do vendedor"
-        subtitulo={`${lanches.length} ${lanches.length === 1 ? "lanche publicado" : "lanches publicados"}`}
-        onBack={() => navigation.goBack()}
-      />
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -258,9 +251,9 @@ export default function PainelVendedor({ navigation }: any) {
           />
           <AdminCard
             icon="📈"
-            titulo="Gráfico de vendas"
+            titulo="Vendas"
             subtitulo="Acompanhe seu desempenho"
-            onPress={() => navigation.navigate("GraficoVendas")}
+            onPress={() => navigation.navigate("Vendas")}
           />
           <AdminCard
             icon="🎁"

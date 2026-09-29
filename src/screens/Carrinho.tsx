@@ -60,17 +60,8 @@ export default function Carrinho({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.voltar}
-          hitSlop={10}
-          accessibilityLabel="Voltar"
-        >
-          <Text style={styles.voltarSeta}>←</Text>
-        </TouchableOpacity>
+      <View style={styles.header}>
         <View style={styles.headerTextos}>
-          <Text style={styles.headerTitulo}>Seu carrinho</Text>
           <Text style={styles.headerSubtitulo}>
             {cart.length} {cart.length === 1 ? "lanche escolhido" : "lanches escolhidos"} · retirada no IF
           </Text>
@@ -163,20 +154,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     gap: spacing.md,
   },
-  headerTitulo: { ...typography.h1, fontSize: 22 },
-  headerSubtitulo: { color: colors.textSecondary, fontSize: 11, marginTop: 2 },
   headerTextos: { flex: 1 },
-  voltar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.surfaceAlt,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  voltarSeta: { color: colors.white, fontSize: 20, fontWeight: "700" },
+  headerSubtitulo: { color: colors.textSecondary, fontSize: 12, flex: 1 },
   limparButton: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,

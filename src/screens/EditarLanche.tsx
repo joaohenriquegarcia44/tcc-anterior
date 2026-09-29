@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   section: { backgroundColor: colors.card, marginTop: 12, paddingHorizontal: 20, paddingVertical: 16 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 },
   label: { fontSize: 14, color: colors.textSecondary, marginBottom: 8, marginTop: 12, fontWeight: "500" },
-  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: colors.card },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16, backgroundColor: colors.card, color: colors.text },
   textArea: { minHeight: 100, textAlignVertical: "top" },
   switchRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 12 },
   switchLabel: { fontSize: 16, color: colors.text },

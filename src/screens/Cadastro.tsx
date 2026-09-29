@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useCadastroLogic } from "../hooks/useCadastroLogic";
-import ScreenHeader from "../components/ScreenHeader";
 import PrimaryButton from "../components/PrimaryButton";
 import { colors, borderRadius, spacing, hitSize, shadows } from "../styles/theme";
 
@@ -69,12 +68,6 @@ export default function Cadastro() {
 
   return (
     <SafeAreaView style={styles.container} edges={["left", "right", "bottom"]}>
-      <ScreenHeader
-        titulo="Criar conta"
-        subtitulo="Leva menos de um minuto"
-        onBack={() => navigation.goBack()}
-      />
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

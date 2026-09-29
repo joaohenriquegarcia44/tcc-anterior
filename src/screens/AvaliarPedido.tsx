@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: 12, padding: 16, marginBottom: 16, elevation: 2 },
   produtoNome: { fontSize: 18, fontWeight: "bold", marginBottom: 12, textAlign: "center" },
   label: { fontSize: 14, fontWeight: "500", marginBottom: 8, marginTop: 8 },
-  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, fontSize: 14, textAlignVertical: "top", minHeight: 60, marginBottom: 8 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, fontSize: 14, textAlignVertical: "top", minHeight: 60, marginBottom: 8, backgroundColor: colors.input, color: colors.text },
   botao: { backgroundColor: colors.primary, padding: 14, borderRadius: 12, alignItems: "center", marginTop: 8, marginBottom: 30 },
   botaoTexto: { color: colors.white, fontSize: 16, fontWeight: "bold" },
 });
