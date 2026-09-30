@@ -57,105 +57,105 @@ export default function Login() {
       />
 
       <SafeAreaView style={styles.flex} edges={["top", "bottom"]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
         >
-          <View style={styles.topo}>
-            <BrandLogo tamanho={38} />
-            <Text style={styles.frase}>
-              Olá! 👋 Que bom ter você aqui.{'\n'}Peça seu lanche favorito do IF.
-            </Text>
-          </View>
-
-          <View style={styles.cartao}>
-            <Text style={styles.cartaoTitulo}>Bem-vindo de volta</Text>
-            <Text style={styles.cartaoSubtitulo}>Entre para acompanhar seus pedidos e pontos.</Text>
-
-            <View style={styles.campo}>
-              <Text style={styles.rotulo}>E-MAIL</Text>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputIcon}>✉️</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="seu.email@ifsul.edu.br"
-                  placeholderTextColor={colors.textLight}
-                  value={email}
-                  onChangeText={setEmail}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  accessibilityLabel="E-mail"
-                />
-              </View>
-            </View>
-
-            <View style={styles.campo}>
-              <Text style={styles.rotulo}>SENHA</Text>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputIcon}>🔒</Text>
-                <TextInput
-                  style={[styles.input, { flex: 1 }]}
-                  placeholder="Sua senha"
-                  placeholderTextColor={colors.textLight}
-                  secureTextEntry={!showPassword}
-                  value={senha}
-                  onChangeText={setSenha}
-                  accessibilityLabel="Senha"
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  hitSlop={10}
-                  style={styles.olho}
-                  accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                >
-                  <Text style={styles.eyeIcon}>{showPassword ? "👁️" : "🙈"}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <TouchableOpacity style={styles.esqueciSenha} onPress={esqueciSenha} hitSlop={8}>
-              <Text style={styles.esqueciSenhaText}>Esqueceu a senha?</Text>
-            </TouchableOpacity>
-
-            <PrimaryButton
-              title="Entrar"
-              onPress={fazerLogin}
-              loading={loading}
-              disabled={loading}
-              icon="→"
-            />
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>ou</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity style={styles.botaoCadastro} onPress={irParaCadastro} activeOpacity={0.85}>
-              <Text style={styles.botaoCadastroTexto}>Criar nova conta</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Ao continuar, você concorda com os{"\n"}
-              <Text style={styles.footerLink} onPress={irParaTermos}>
-                Termos de uso
-              </Text>{" "}
-              e{" "}
-              <Text style={styles.footerLink} onPress={irParaPoliticas}>
-                Política de privacidade
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.topo}>
+              <BrandLogo tamanho={38} />
+              <Text style={styles.frase}>
+                Olá! 👋 Que bom ter você aqui.{'\n'}Peça seu lanche favorito do IF.
               </Text>
-            </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            </View>
+
+            <View style={styles.cartao}>
+              <Text style={styles.cartaoTitulo}>Bem-vindo de volta</Text>
+              <Text style={styles.cartaoSubtitulo}>Entre para acompanhar seus pedidos e pontos.</Text>
+
+              <View style={styles.campo}>
+                <Text style={styles.rotulo}>E-MAIL</Text>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputIcon}>✉️</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="seu.email@gmail.com"
+                    placeholderTextColor={colors.textLight}
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    accessibilityLabel="E-mail"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.campo}>
+                <Text style={styles.rotulo}>SENHA</Text>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputIcon}>🔒</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="Sua senha"
+                    placeholderTextColor={colors.textLight}
+                    secureTextEntry={!showPassword}
+                    value={senha}
+                    onChangeText={setSenha}
+                    accessibilityLabel="Senha"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    hitSlop={10}
+                    style={styles.olho}
+                    accessibilityLabel={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    <Text style={styles.eyeIcon}>{showPassword ? "👁️" : "🙈"}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <TouchableOpacity style={styles.esqueciSenha} onPress={esqueciSenha} hitSlop={8}>
+                <Text style={styles.esqueciSenhaText}>Esqueceu a senha?</Text>
+              </TouchableOpacity>
+
+              <PrimaryButton
+                title="Entrar"
+                onPress={fazerLogin}
+                loading={loading}
+                disabled={loading}
+
+              />
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>ou</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity style={styles.botaoCadastro} onPress={irParaCadastro} activeOpacity={0.85}>
+                <Text style={styles.botaoCadastroTexto}>Criar nova conta</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                Ao continuar, você concorda com os{"\n"}
+                <Text style={styles.footerLink} onPress={irParaTermos}>
+                  Termos de uso
+                </Text>{" "}
+                e{" "}
+                <Text style={styles.footerLink} onPress={irParaPoliticas}>
+                  Política de privacidade
+                </Text>
+              </Text>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );
