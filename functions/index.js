@@ -135,15 +135,9 @@ exports.webhook = functions.https.onRequest(async (req, res) => {
           pagoEm: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-        if (pedido.lanches && Array.isArray(pedido.lanches)) {
-          for (const item of pedido.lanches) {
-            const lancheRef = db.collection('lanches').doc(item.id);
-            batch.update(lancheRef, {
-              quantidadeDisponivel: admin.firestore.FieldValue.increment(-item.quantidade),
-            });
-          }
-        }
-
+        // O estoque já saiu do cardápio quando o item entrou no carrinho
+        // (reserva de 5 minutos). Aqui só o pedido muda de status, senão a
+        // mesma unidade seria descontada duas vezes.
         await batch.commit();
         console.log(`✅ Pedido ${external_reference} atualizado para PAGO.`);
       } else {

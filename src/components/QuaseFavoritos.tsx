@@ -8,11 +8,12 @@ type Props = {
   motivo?: string;
   largura?: number;
   onPressItem?: (item: any) => void;
-  onAdd?: (item: any) => void;
+  /** Botão do card: coloca a sugestão direto nos favoritos. */
+  onFavoritar?: (item: any) => void;
 };
 
 /** "Quase nos seus favoritos": sugestões parecidas com o histórico do aluno. */
-export default function QuaseFavoritos({ itens, motivo, largura = 150, onPressItem, onAdd }: Props) {
+export default function QuaseFavoritos({ itens, motivo, largura = 150, onPressItem, onFavoritar }: Props) {
   if (!itens.length) return null;
 
   return (
@@ -20,7 +21,9 @@ export default function QuaseFavoritos({ itens, motivo, largura = 150, onPressIt
       <View style={styles.header}>
         <Text style={styles.titulo}>💜 Quase nos seus favoritos</Text>
         <Text style={styles.subtitulo} numberOfLines={1}>
-          {motivo ? `Parecidos com os ${motivo} que você pede` : 'Sugestões do seu gosto'}
+          {motivo
+            ? `Parecidos com os ${motivo} que você pede — toque no ♥ para guardar`
+            : 'Sugestões do seu gosto — toque no ♥ para guardar'}
         </Text>
       </View>
 
@@ -31,7 +34,8 @@ export default function QuaseFavoritos({ itens, motivo, largura = 150, onPressIt
             produto={item}
             largura={largura}
             onPress={() => onPressItem?.(item)}
-            onAdd={onAdd ? () => onAdd(item) : undefined}
+            onAdd={onFavoritar ? () => onFavoritar(item) : undefined}
+            botao={{ icone: '❤️', titulo: `Favoritar ${item.nome}` }}
           />
         ))}
       </ScrollView>

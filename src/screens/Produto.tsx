@@ -108,7 +108,7 @@ export default function Produto({ route, navigation }: any) {
     if (quantidade > 1) setQuantidade(quantidade - 1);
   }
 
-  function adicionarAoCarrinhoComQuantidade() {
+  async function adicionarAoCarrinhoComQuantidade() {
     if (produto.disponivel === false) {
       Alert.alert("Indisponível", "Este lanche não está disponível no momento");
       return;
@@ -126,13 +126,12 @@ export default function Produto({ route, navigation }: any) {
       }
       return;
     }
-    let adicionados = 0;
-    for (let i = 0; i < quantidade; i++) {
-      if (adicionarAoCarrinho({ ...produto, preco: precoAtual })) adicionados++;
-    }
+
+    // Reserva o estoque: se já tiver acabado, o próprio Firestore avisa.
+    const adicionado = await adicionarAoCarrinho({ ...produto, preco: precoAtual }, quantidade);
 
     // Anunciante não compra o próprio lanche: sem confirmação visual de carrinho.
-    if (adicionados === 0) return;
+    if (!adicionado) return;
 
     setShowModal(true);
     setTimeout(() => setShowModal(false), 1500);

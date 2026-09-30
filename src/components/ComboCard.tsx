@@ -1,14 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, borderRadius, spacing, shadows } from '../styles/theme';
+import { useDescontoComboLogic } from '../hooks/useDescontoComboLogic';
 
 type Props = {
   onPress: () => void;
   compacto?: boolean;
+  /** Cardápio do vendedor: é daqui que sai o desconto configurado. */
+  lanches?: any[];
 };
 
-/** Card que abre o "Monte seu combo" (Home e Cardápio). */
-export default function ComboCard({ onPress, compacto }: Props) {
+/**
+ * Card que abre o "Monte seu combo" (Home e Cardápio).
+ * Já mostra o desconto que o vendedor configurou, antes de qualquer escolha.
+ */
+export default function ComboCard({ onPress, compacto, lanches }: Props) {
+  const { desconto: descontoCombo, carregando: carregandoDesconto } = useDescontoComboLogic(lanches || []);
+
+  const selo = carregandoDesconto
+    ? 'Buscando o desconto do vendedor...'
+    : descontoCombo.percentual > 0
+      ? `${descontoCombo.percentual}% de desconto · até R$ ${descontoCombo.teto.toFixed(2)}`
+      : 'Este combo está sem desconto';
+
   return (
     <TouchableOpacity
       activeOpacity={0.88}
@@ -22,9 +36,7 @@ export default function ComboCard({ onPress, compacto }: Props) {
         <Text style={styles.subtitulo} numberOfLines={2}>
           Lanche + bebida + doce em 3 toques
         </Text>
-        {!compacto && (
-          <Text style={styles.selo}>Desconto configurado pelo vendedor</Text>
-        )}
+        {!compacto && <Text style={styles.selo}>{selo}</Text>}
       </View>
 
       <View style={styles.cta}>

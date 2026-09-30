@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import FoodImage from './FoodImage';
 import QuantitySelector from './QuantitySelector';
@@ -12,6 +12,10 @@ export type ItemCarrinho = {
   imagem?: string;
   localRetirada?: string;
   quantidadeDisponivel?: number;
+  /** Epoch ms: quando a linha perde o estoque reservado. */
+  expiraEm?: number;
+  /** true quando o pedido já foi criado: não há mais prazo. */
+  pedidoCriado?: boolean;
 };
 
 type Props = {
@@ -22,9 +26,32 @@ type Props = {
   onPress?: () => void;
 };
 
+/** "3:47" no formato mm:ss, ou null quando já venceu / não há prazo. */
+function tempoRestante(expiraEm: number | undefined, agora: number): string | null {
+  if (!expiraEm) return null;
+  const restante = Math.max(0, Math.floor((expiraEm - agora) / 1000));
+  if (restante === 0) return null;
+
+  const min = Math.floor(restante / 60);
+  const seg = restante % 60;
+  return `${min}:${String(seg).padStart(2, '0')}`;
+}
+
 /** Linha do carrinho: miniatura, nome, preço e controle de quantidade. */
 export default function CartItemRow({ item, onIncrease, onDecrease, onRemove, onPress }: Props) {
   const total = (Number(item.preco) || 0) * (item.quantidade || 0);
+  const [agora, setAgora] = useState(() => Date.now());
+
+  // Só há relógio quando existe prazo: depois do pedido o item não expira.
+  const temPrazo = !item.pedidoCriado && !!item.expiraEm;
+  useEffect(() => {
+    if (!temPrazo) return;
+    const t = setInterval(() => setAgora(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [temPrazo]);
+
+  const restante = tempoRestante(item.expiraEm, agora);
+  const urgente = !!restante && Number(restante.split(':')[0]) < 1;
 
   return (
     <View style={styles.container}>
@@ -35,6 +62,14 @@ export default function CartItemRow({ item, onIncrease, onDecrease, onRemove, on
       <View style={styles.info}>
         <Text style={styles.nome} numberOfLines={2}>{item.nome}</Text>
         <Text style={styles.precoUnitario}>R$ {(Number(item.preco) || 0).toFixed(2)}</Text>
+
+        {item.pedidoCriado ? (
+          <Text style={styles.prazo}>✅ Pedido criado, aguardando pagamento</Text>
+        ) : restante ? (
+          <Text style={[styles.prazo, urgente && styles.prazoUrgente]}>
+            ⏱ Sai do carrinho em {restante}
+          </Text>
+        ) : null}
 
         <View style={styles.rodape}>
           <QuantitySelector
@@ -80,6 +115,15 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     fontSize: 12,
     marginTop: 2,
+  },
+  prazo: {
+    color: colors.secondary,
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  prazoUrgente: {
+    color: colors.danger,
   },
   rodape: {
     flexDirection: 'row',

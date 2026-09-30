@@ -9,10 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
+  Alert,
 } from "react-native";
 import { auth } from "../database/database";
 import { useHomeLogic } from "../hooks/useHomeLogic";
 import { CartContext } from "../services/CartContext";
+import { adicionarAosFavoritos } from "../services/favoritos";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors, spacing, borderRadius, typography } from "../styles/theme";
 import SearchBar from "../components/SearchBar";
@@ -44,7 +46,7 @@ export default function Home({ navigation }: any) {
   const ehVendedor = useEhVendedor();
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
-  const { totalItens, adicionarAoCarrinho } = useContext(CartContext);
+  const { totalItens } = useContext(CartContext);
   const {
     lanches,
     filteredLanches,
@@ -83,6 +85,21 @@ export default function Home({ navigation }: any) {
   function escolherHumor(categoriaId: string) {
     filtrarPorCategoria(categoriaId);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 120);
+  }
+
+  /** Botão da seção "Quase nos seus favoritos": guarda a sugestão de vez. */
+  async function favoritarSugestao(item: any) {
+    try {
+      const favoritou = await adicionarAosFavoritos(item.id);
+      if (!favoritou) {
+        Alert.alert("Login necessário", "Faça login para favoritar");
+        return;
+      }
+      Alert.alert("❤️ Nos favoritos!", `${item.nome} já está em "Seus favoritos".`);
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Erro", "Não foi possível salvar nos favoritos");
+    }
   }
 
   if (loading) {
@@ -165,7 +182,7 @@ export default function Home({ navigation }: any) {
           {/* Montar combo mora junto do atalho de humor, no início da Home. */}
           {lanches.length > 0 && (
             <View style={styles.combo}>
-              <ComboCard onPress={() => setComboAberto(true)} />
+              <ComboCard lanches={lanches} onPress={() => setComboAberto(true)} />
             </View>
           )}
         </View>
@@ -267,7 +284,7 @@ export default function Home({ navigation }: any) {
               motivo={motivo}
               largura={cardLargura}
               onPressItem={(item: any) => navigation.navigate("Produto", { produto: item })}
-              onAdd={(item: any) => adicionarAoCarrinho(item)}
+              onFavoritar={(item: any) => favoritarSugestao(item)}
             />
           </View>
         )}

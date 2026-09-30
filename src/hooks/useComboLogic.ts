@@ -142,7 +142,7 @@ export function useComboLogic(lanches: any[], onFechar: () => void) {
     }
 
     setSalvando(true);
-    const ok = adicionarComboAoCarrinho(itensEscolhidos, desconto);
+    const ok = await adicionarComboAoCarrinho(itensEscolhidos, desconto);
     setSalvando(false);
 
     if (ok) {

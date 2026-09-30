@@ -21,6 +21,8 @@ type Props = {
   produto: Produto;
   onPress?: () => void;
   onAdd?: () => void;
+  /** Ícone/texto do botão flutuante. Padrão: "Adicionar ao carrinho". */
+  botao?: { icone: string; titulo: string };
   /** "grid" = card grande com foto; "row" = lista com foto à esquerda. */
   variant?: 'grid' | 'row';
   largura?: number;
@@ -32,10 +34,13 @@ export default function ProductCard({
   produto,
   onPress,
   onAdd,
+  botao,
   variant = 'grid',
   largura,
   emoji = '🍔',
 }: Props) {
+  const acao = { icone: '+', titulo: `Adicionar ${produto.nome}`, ...botao };
+
   const precoFinal = produto.promocao
     ? produto.precoPromocional || produto.preco
     : produto.preco;
@@ -71,7 +76,7 @@ export default function ProductCard({
             </View>
 
             {!!onAdd && (
-              <CircleActionButton icon="+" titulo={`Adicionar ${produto.nome}`} onPress={onAdd} tamanho={38} />
+              <CircleActionButton icon={acao.icone} titulo={acao.titulo} onPress={onAdd} tamanho={38} />
             )}
           </View>
         </View>
@@ -108,7 +113,7 @@ export default function ProductCard({
 
         {!!onAdd && (
           <View style={styles.gridAdd}>
-            <CircleActionButton icon="+" titulo={`Adicionar ${produto.nome}`} onPress={onAdd} tamanho={42} />
+            <CircleActionButton icon={acao.icone} titulo={acao.titulo} onPress={onAdd} tamanho={42} />
           </View>
         )}
       </View>

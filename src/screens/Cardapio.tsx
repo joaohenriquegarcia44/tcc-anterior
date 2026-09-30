@@ -19,7 +19,6 @@ import BottomNavigation from "../components/BottomNavigation";
 import CircleActionButton from "../components/CircleActionButton";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
-import MoodSelector from "../components/MoodSelector";
 import ComboCard from "../components/ComboCard";
 import ComboBuilder from "../components/ComboBuilder";
 import { abasDoApp } from "../navigation/tabs";
@@ -96,20 +95,12 @@ export default function Cardapio({ navigation }: any) {
           />
         </View>
 
-        {/* COMO TÁ SEU DIA? + MONTE SEU COMBO */}
-        <View style={styles.bloco}>
-          <MoodSelector
-            onSelect={filtrarPorCategoria}
-            selecionada={["lanche", "bebida", "doce"].includes(categoriaSelecionada) ? categoriaSelecionada : undefined}
-          />
-
-          {/* Montar combo faz parte do atalho de humor, igual na Home. */}
-          {lanches.length > 0 && (
-            <View style={styles.combo}>
-              <ComboCard onPress={() => setComboAberto(true)} />
-            </View>
-          )}
-        </View>
+        {/* MONTE SEU COMBO */}
+        {lanches.length > 0 && (
+          <View style={styles.bloco}>
+            <ComboCard lanches={lanches} onPress={() => setComboAberto(true)} />
+          </View>
+        )}
 
         <View style={styles.categorias}>
           <CategoryButton
@@ -187,7 +178,6 @@ const styles = StyleSheet.create({
   busca: { marginTop: spacing.lg },
 
   bloco: { paddingHorizontal: spacing.xl, marginTop: spacing.xl },
-  combo: { marginTop: spacing.lg },
 
   categorias: { marginTop: spacing.lg },
 

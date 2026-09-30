@@ -6,8 +6,6 @@ import type { ItemRanking } from '../hooks/useRankingSemanaLogic';
 
 const MEDALHAS = ['🥇', '🥈', '🥉'];
 
-const CORES_POSICAO = ['#FFC400', '#C9CED6', '#C2703B'];
-
 type Props = {
   itens: ItemRanking[];
   parcial?: boolean;
@@ -44,33 +42,42 @@ export default function Top5Semana({ itens, parcial, onPressItem, onVerTodos }: 
         {itens.map((item, indice) => {
           const posicao = indice + 1;
           return (
-            <TouchableOpacity
-              key={item.id}
-              activeOpacity={0.85}
-              onPress={() => onPressItem?.(item)}
-              style={styles.card}
-              accessibilityRole="button"
-              accessibilityLabel={`${posicao}º lugar: ${item.nome}`}
-            >
-              <View style={[styles.badge, { borderColor: CORES_POSICAO[indice] || colors.border }]}>
-                <Text style={styles.badgeTexto}>{MEDALHAS[indice] || `${posicao}º`}</Text>
-              </View>
+            <View key={item.id} style={styles.item}>
+              {/* O 1º colocado ganha a medalha pendurada fora do card. */}
+              {posicao === 1 && (
+                <View style={styles.medalha}>
+                  <View style={styles.fita} />
+                  <Text style={styles.medalhaEmoji}>🥇</Text>
+                </View>
+              )}
 
-              <View style={styles.fotoCaixa}>
-                <FoodImage
-                  uri={item.imagem}
-                  style={styles.foto}
-                  radius={borderRadius.md}
-                  fallbackIcon="🍔"
-                />
-              </View>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => onPressItem?.(item)}
+                style={styles.card}
+                accessibilityRole="button"
+                accessibilityLabel={`${posicao}º lugar: ${item.nome}`}
+              >
+                <View style={styles.fotoCaixa}>
+                  <FoodImage
+                    uri={item.imagem}
+                    style={styles.foto}
+                    radius={borderRadius.md}
+                    fallbackIcon="🍔"
+                  />
+                </View>
 
-              <Text style={styles.nome} numberOfLines={1}>{item.nome}</Text>
-              <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
-              <Text style={styles.vendidos}>
-                {item.quantidade} {item.quantidade === 1 ? 'pedido' : 'pedidos'}
-              </Text>
-            </TouchableOpacity>
+                <Text style={styles.nome} numberOfLines={1}>{item.nome}</Text>
+                <Text style={styles.preco}>R$ {item.preco.toFixed(2)}</Text>
+                <Text style={styles.vendidos}>
+                  {item.quantidade} {item.quantidade === 1 ? 'pedido' : 'pedidos'}
+                </Text>
+
+                {posicao > 1 && (
+                  <Text style={styles.colocacao}>{MEDALHAS[indice] || `${posicao}º`}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           );
         })}
       </ScrollView>
@@ -91,32 +98,43 @@ const styles = StyleSheet.create({
   subtitulo: { color: colors.textLight, fontSize: 12, marginTop: 2 },
   verTodos: { color: colors.primary, fontSize: 12, fontWeight: '800' },
 
-  linha: { gap: spacing.md, paddingRight: spacing.xl },
+  linha: { gap: spacing.md, paddingTop: spacing.xl, paddingRight: spacing.xl },
+  item: { width: 138 },
   card: {
-    width: 138,
     backgroundColor: colors.card,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    paddingTop: spacing.lg,
     gap: 2,
     ...shadows.small,
   },
-  badge: {
+  medalha: {
     position: 'absolute',
-    top: -10,
-    left: spacing.md,
-    minWidth: 26,
-    height: 26,
-    paddingHorizontal: 6,
-    borderRadius: borderRadius.round,
-    borderWidth: 2,
-    backgroundColor: colors.card,
+    top: -4,
+    right: 8,
+    zIndex: 2,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FFC400',
+    borderWidth: 3,
+    borderColor: colors.card,
+    ...shadows.medium,
   },
-  badgeTexto: { fontSize: 13, fontWeight: '900', color: colors.text },
+  // Alça da medalha: é ela que faz parecer que a medalha está pendurada.
+  fita: {
+    position: 'absolute',
+    top: -7,
+    width: 8,
+    height: 12,
+    borderRadius: 4,
+    backgroundColor: '#C2703B',
+  },
+  medalhaEmoji: { fontSize: 20 },
+  colocacao: { color: colors.textLight, fontSize: 10, fontWeight: '900', marginTop: 2 },
   fotoCaixa: { width: '100%', height: 76, marginBottom: spacing.sm },
   foto: { width: '100%', height: '100%' },
   nome: { color: colors.text, fontSize: 13, fontWeight: '800' },

@@ -7,7 +7,7 @@ import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 export function useConfirmarPedidoLogic(route: any, navigation: any) {
   const dataRecebida = route.params?.dataRetirada;
 
-  const { cart } = useContext(CartContext);
+  const { cart, marcarComoPedido } = useContext(CartContext);
   const [metodoPagamento] = useState<string>('pix');
   const [userData, setUserData] = useState<any>({});
   const [pontosUsuario, setPontosUsuario] = useState(0);
@@ -271,10 +271,17 @@ export function useConfirmarPedidoLogic(route: any, navigation: any) {
 
       const data = await response.json();
       if (data.qrCode) {
+        // O estoque já saiu do cardápio quando o item entrou no carrinho. Aqui
+        // ele só passa a contar como janela de pagamento em vez de reserva.
+        marcarComoPedido(pedidoId);
+
         navigation.navigate('ExibirQRCode', {
           qrCode: data.qrCode,
           qrCodeText: data.qrCodeText,
           pedidoId: pedidoId,
+          // Um pedido por vendedor: a tela do QR precisa de todos para saber
+          // quando o carrinho pode ser esvaziado.
+          pedidoIds: pedidosCriados.map((p) => p.id),
         });
       } else {
         throw new Error('Resposta da API não contém QR Code');

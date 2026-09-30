@@ -52,7 +52,7 @@ export default function App() {
 
 function AppContent() {
   const url = useURL();
-  const { limparCarrinho } = useContext(CartContext);
+  const { finalizarCompra } = useContext(CartContext);
 
   useEffect(() => {
     if (url) {
@@ -62,7 +62,8 @@ function AppContent() {
       const status = queryParams.get("status");
 
       if (status === "approved") {
-        limparCarrinho();
+        // Pagamento aprovado: o estoque reservado vira venda e o carrinho sai.
+        finalizarCompra();
         Alert.alert("Pagamento aprovado!", "Seu pedido foi confirmado e será preparado.");
       } else if (status === "rejected") {
         Alert.alert("Pagamento recusado", "Tente novamente ou escolha outra forma de pagamento.");
