@@ -96,19 +96,19 @@ export default function CriarLanche({ navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📋 Informações Básicas</Text>
           <Text style={styles.label}>Nome do lanche *</Text>
-          <TextInput style={styles.input} placeholder="Ex: X-Burger Especial" value={nome} onChangeText={setNome} />
+          <TextInput style={styles.input} placeholderTextColor={colors.textSecondary} placeholder="Ex: X-Burger Especial" value={nome} onChangeText={setNome} />
           <Text style={styles.label}>Preço (R$) *</Text>
-          <TextInput style={styles.input} placeholder="0,00" value={preco} onChangeText={setPreco} keyboardType="numeric" />
+          <TextInput style={styles.input} placeholderTextColor={colors.textSecondary} placeholder="0,00" value={preco} onChangeText={setPreco} keyboardType="numeric" />
           <Text style={styles.label}>Descrição *</Text>
-          <TextInput style={[styles.input, styles.textArea]} placeholder="Descreva seu lanche..." value={descricao} onChangeText={setDescricao} multiline />
+          <TextInput style={[styles.input, styles.textArea]} placeholderTextColor={colors.textSecondary} placeholder="Descreva seu lanche..." value={descricao} onChangeText={setDescricao} multiline />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📦 Estoque</Text>
           <Text style={styles.label}>Quantidade disponível</Text>
-          <TextInput style={styles.input} placeholder="10" value={quantidadeDisponivel} onChangeText={setQuantidadeDisponivel} keyboardType="numeric" />
+          <TextInput style={styles.input} placeholderTextColor={colors.textSecondary} placeholder="10" value={quantidadeDisponivel} onChangeText={setQuantidadeDisponivel} keyboardType="numeric" />
           <Text style={styles.label}>Tempo de preparo (minutos)</Text>
-          <TextInput style={styles.input} placeholder="15-25" value={tempoPreparo} onChangeText={setTempoPreparo} keyboardType="numeric" />
+          <TextInput style={styles.input} placeholderTextColor={colors.textSecondary} placeholder="15-25" value={tempoPreparo} onChangeText={setTempoPreparo} keyboardType="numeric" />
         </View>
 
         <View style={styles.section}>
@@ -127,7 +127,7 @@ export default function CriarLanche({ navigation }: any) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🥗 Ingredientes</Text>
-          <TextInput style={styles.input} placeholder="Pão, hambúrguer, queijo, alface, tomate" value={ingredientes} onChangeText={setIngredientes} />
+          <TextInput style={styles.input} placeholderTextColor={colors.textSecondary} placeholder="Pão, hambúrguer, queijo, alface, tomate" value={ingredientes} onChangeText={setIngredientes} />
           <Text style={styles.helperText}>Separe os ingredientes por vírgula</Text>
         </View>
 
@@ -135,6 +135,7 @@ export default function CriarLanche({ navigation }: any) {
           <Text style={styles.sectionTitle}>📍 Local de Retirada</Text>
           <TextInput
             style={styles.input}
+            placeholderTextColor={colors.textSecondary}
             placeholder="Ex: Cantina do IFSul, Sala 101 / Rua das Flores, 123"
             value={localRetirada}
             onChangeText={setLocalRetirada}
@@ -149,7 +150,7 @@ export default function CriarLanche({ navigation }: any) {
           {promocao && (
             <View>
               <Text style={styles.label}>Preço promocional (R$)</Text>
-              <TextInput style={styles.input} placeholder="0,00" value={precoPromocional} onChangeText={setPrecoPromocional} keyboardType="numeric" />
+              <TextInput style={styles.input} placeholderTextColor={colors.textSecondary} placeholder="0,00" value={precoPromocional} onChangeText={setPrecoPromocional} keyboardType="numeric" />
             </View>
           )}
         </View>
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   previewImage: { width: 200, height: 150, borderRadius: 12, resizeMode: "cover" },
   imagePlaceholder: { width: 200, height: 150, borderRadius: 12, backgroundColor: colors.surfaceAlt, justifyContent: "center", alignItems: "center" },
   imagePlaceholderIcon: { fontSize: 40, marginBottom: 8 },
-  imagePlaceholderText: { fontSize: 12, color: colors.textLight },
+  imagePlaceholderText: { fontSize: 12, color: colors.textSecondary },
   changeImageButton: { backgroundColor: colors.surfaceAlt, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 25, marginTop: 12 },
   changeImageText: { color: colors.primaryText, fontWeight: "500" },
   section: { backgroundColor: colors.card, marginTop: 12, paddingHorizontal: 20, paddingVertical: 16 },
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   switchLabel: { fontSize: 16, color: colors.text },
   checkboxRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   checkboxLabel: { fontSize: 16, marginLeft: 12, color: colors.text },
-  helperText: { fontSize: 11, color: colors.textLight, marginTop: 5 },
+  helperText: { fontSize: 12, color: colors.textSecondary, marginTop: 6 },
   botaoSalvar: { backgroundColor: colors.primary, margin: 20, paddingVertical: 16, borderRadius: 12, alignItems: "center", elevation: 3 },
   botaoDisabled: { opacity: 0.7 },
   botaoTexto: { color: colors.white, fontSize: 18, fontWeight: "bold" },

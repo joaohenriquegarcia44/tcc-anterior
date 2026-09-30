@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
   Pressable,
   RefreshControl,
@@ -15,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import BottomNavigation from '../components/BottomNavigation';
+import HeaderVendedor from '../components/HeaderVendedor';
 import FoodImage from '../components/FoodImage';
 import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
@@ -28,6 +28,9 @@ import {
 } from '../hooks/useVendasLogic';
 
 const FOTO_HERO = require('../../assets/burger-hero.jpg');
+
+/** Lado da foto do card principal (quadrado, alinhado com o texto). */
+const TAMANHO_HERO_FOTO = 92;
 
 /** Verde só para crescimento; vermelho para queda; neutro quando não houve mudança. */
 function tomVariacao(variacao: number) {
@@ -71,11 +74,19 @@ export default function Vendas({ navigation }: any) {
     return null;
   }
 
-  if (carregando) return <LoadingState mensagem="Carregando suas vendas..." sub="Últimos 30 dias" />;
+  if (carregando) {
+    return (
+      <View style={styles.tela}>
+        <HeaderVendedor navigation={navigation} tela="Vendas" />
+        <LoadingState mensagem="Carregando suas vendas..." sub="Últimos 30 dias" />
+      </View>
+    );
+  }
 
   if (erro) {
     return (
-      <SafeAreaView style={styles.tela} edges={['top']}>
+      <View style={styles.tela}>
+        <HeaderVendedor navigation={navigation} tela="Vendas" />
         <View style={styles.erroWrapper}>
           <EmptyState
             icon="📡"
@@ -92,14 +103,17 @@ export default function Vendas({ navigation }: any) {
           ativa="Vendas"
           onSelect={(key) => key !== 'Vendas' && navigation.navigate(key)}
         />
-      </SafeAreaView>
+      </View>
     );
   }
 
   // O número grande encolhe em telas estreitas; o ajuste fino é o FontSizeToFit.
-  const larguraUtil = Math.max(140, (width - spacing.xl * 2) * 0.7 - spacing.xl * 2);
-  const fonteValor = Math.min(44, Math.max(26, larguraUtil / 6.2));
+  const larguraUtil = Math.max(120, width - spacing.xl * 4 - TAMANHO_HERO_FOTO - spacing.md);
+  const fonteValor = Math.min(42, Math.max(24, larguraUtil / 6));
   const tomPrincipal = tomVariacao(resumo.variacao);
+
+  // Foto do lanche que mais vendeu no período; sem vendas, cai na foto do app.
+  const fotoHero = topProdutos[0]?.imagem || FOTO_HERO;
 
   const estiloEntrada = {
     opacity: entrada,
@@ -116,6 +130,8 @@ export default function Vendas({ navigation }: any) {
       )}
 
       <SafeAreaView style={styles.tela} edges={[]}>
+        <HeaderVendedor navigation={navigation} tela="Vendas" />
+
         <Text style={styles.headerSub}>Acompanhe o desempenho da sua lancheria</Text>
 
         <View style={styles.gutterTopo}>
@@ -174,7 +190,6 @@ export default function Vendas({ navigation }: any) {
         >
           {/* CARD PRINCIPAL — média diária */}
           <Animated.View style={[styles.hero, estiloEntrada]}>
-            <Image source={FOTO_HERO} style={styles.heroFoto} resizeMode="cover" />
             <LinearGradient
               colors={['#0A0507', '#0A0507', 'rgba(10,5,7,0.62)', 'rgba(10,5,7,0.30)']}
               locations={[0, 0.44, 0.74, 1]}
@@ -184,38 +199,47 @@ export default function Vendas({ navigation }: any) {
               pointerEvents="none"
             />
 
-            <View style={styles.heroConteudo}>
-              <View style={styles.heroTopo}>
-                <View style={styles.heroIcone}>
-                  <Text style={styles.heroIconeTexto}>📊</Text>
+            <View style={styles.heroLinha}>
+              <View style={styles.heroConteudo}>
+                <View style={styles.heroTopo}>
+                  <View style={styles.heroIcone}>
+                    <Text style={styles.heroIconeTexto}>📊</Text>
+                  </View>
+                  <View style={styles.heroTopoTextos}>
+                    <Text style={styles.heroTitulo} numberOfLines={1}>
+                      Média de vendas
+                    </Text>
+                    <Text style={styles.heroSubtitulo} numberOfLines={1}>
+                      ({periodo.rotulo.toLowerCase()})
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.heroTopoTextos}>
-                  <Text style={styles.heroTitulo} numberOfLines={1}>
-                    Média de vendas
+
+                <Text
+                  style={[styles.heroValor, { fontSize: fonteValor }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.55}
+                >
+                  {formatarMoeda(resumo.media)}
+                </Text>
+
+                <View style={styles.heroRodape}>
+                  <Text style={[styles.heroVariacao, { color: tomPrincipal.texto }]}>
+                    {tomPrincipal.seta} {formatarPercentual(resumo.variacao)}
                   </Text>
-                  <Text style={styles.heroSubtitulo} numberOfLines={1}>
-                    ({periodo.rotulo.toLowerCase()})
+                  <Text style={styles.heroComparacao} numberOfLines={2}>
+                    em relação aos {dias} dias anteriores
                   </Text>
                 </View>
               </View>
 
-              <Text
-                style={[styles.heroValor, { fontSize: fonteValor }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.55}
-              >
-                {formatarMoeda(resumo.media)}
-              </Text>
-
-              <View style={styles.heroRodape}>
-                <Text style={[styles.heroVariacao, { color: tomPrincipal.texto }]}>
-                  {tomPrincipal.seta} {formatarPercentual(resumo.variacao)}
-                </Text>
-                <Text style={styles.heroComparacao} numberOfLines={2}>
-                  em relação aos {dias} dias anteriores
-                </Text>
-              </View>
+              <FoodImage
+                uri={fotoHero}
+                style={styles.heroFoto}
+                radius={borderRadius.lg}
+                fallbackIcon="🍔"
+              />
             </View>
           </Animated.View>
 
@@ -408,15 +432,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...shadows.medium,
   },
-  heroFoto: {
-    position: 'absolute',
-    top: '12%',
-    bottom: '12%',
-    right: '4%',
-    width: '30%',
-    borderRadius: borderRadius.lg,
-  },
-  heroConteudo: { padding: spacing.xl, width: '70%', gap: spacing.sm },
+  heroConteudo: { flex: 1, gap: spacing.sm },
+  heroLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.xl },
+  heroFoto: { width: TAMANHO_HERO_FOTO, height: TAMANHO_HERO_FOTO },
   heroTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   heroIcone: {
     width: 38,

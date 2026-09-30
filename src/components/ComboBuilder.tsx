@@ -23,6 +23,8 @@ export default function ComboBuilder({ visivel, onFechar, lanches }: Props) {
     itensEscolhidos,
     subtotal,
     desconto,
+    descontoCombo,
+    carregandoDesconto,
     total,
     salvando,
     temProximo,
@@ -54,9 +56,11 @@ export default function ComboBuilder({ visivel, onFechar, lanches }: Props) {
               </Text>
             </View>
 
-            <View style={styles.selo}>
-              <Text style={styles.seloTexto}>-{Math.round(desconto > 0 ? (desconto / (subtotal || 1)) * 100 : 0)}%</Text>
-            </View>
+            {desconto > 0 && (
+              <View style={styles.selo}>
+                <Text style={styles.seloTexto}>-{Math.round((desconto / (subtotal || 1)) * 100)}%</Text>
+              </View>
+            )}
           </View>
 
           {/* PASSOS */}
@@ -148,6 +152,14 @@ export default function ComboBuilder({ visivel, onFechar, lanches }: Props) {
                 </View>
               ) : (
                 <Text style={styles.resumoDica}>Escolha 2 ou 3 itens para ganhar o desconto</Text>
+              )}
+              {/* Cada vendedor escolhe o quanto desconta do combo dele. */}
+              {!!escolha.lanche && (
+                <Text style={styles.resumoRegra}>
+                  {carregandoDesconto
+                    ? 'Buscando o desconto do vendedor...'
+                    : `Desconto do vendedor: ${descontoCombo.percentual}% (até R$ ${descontoCombo.teto.toFixed(2)})`}
+                </Text>
               )}
             </View>
 
@@ -279,6 +291,7 @@ const styles = StyleSheet.create({
   resumoDesconto: { color: colors.success, fontSize: 13, fontWeight: '800' },
   resumoTotal: { color: colors.text, fontSize: 20, fontWeight: '900' },
   resumoDica: { color: colors.textLight, fontSize: 12, fontStyle: 'italic' },
+  resumoRegra: { color: colors.textLight, fontSize: 11, marginTop: 2 },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   secundario: {
     minHeight: hitSize.min,

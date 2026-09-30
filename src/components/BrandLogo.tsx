@@ -25,7 +25,7 @@ export default function BrandLogo({ tamanho = 34, mostrarSlogan = true, alinhado
           <Text style={styles.icone}>🍔</Text>
         </LinearGradient>
         <Text style={[styles.nome, { fontSize: tamanho }]}>
-          Al<Text style={styles.nomeDestaque}>-lanches</Text>
+          IF<Text style={styles.nomeDestaque}>aminto</Text>
         </Text>
       </View>
 

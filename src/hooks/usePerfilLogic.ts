@@ -6,6 +6,7 @@ import { auth, db } from '../database/database';
 import * as ImagePicker from 'expo-image-picker';
 import { IMGBB_API_KEY } from '@env';
 import type { DocumentoFirestore } from "../types/models";
+import { ehPedidoPendenteDeEntrega } from './useEhVendedor';
 
 export function usePerfilLogic(navigation: any) {
   const [userData, setUserData] = useState<any>({});
@@ -256,6 +257,9 @@ export function usePerfilLogic(navigation: any) {
 
   const isAdmin = userData.papel === 'admin';
 
+  // O vendedor não cancela: só entrega. A lista mostra o que ainda está com ele.
+  const pedidosPendentes = pedidosRecebidos.filter((p: any) => ehPedidoPendenteDeEntrega(p.status));
+
   return {
     userData,
     setUserData,
@@ -276,6 +280,7 @@ export function usePerfilLogic(navigation: any) {
     refreshing,
     meusLanches,
     pedidosRecebidos,
+    pedidosPendentes,
     avaliacoesRecebidas,
     mediaAvaliacaoVendedor,
     graficos,

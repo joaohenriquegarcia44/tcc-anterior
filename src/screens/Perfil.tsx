@@ -26,7 +26,8 @@ import LoyaltyCard from "../components/LoyaltyCard";
 import LoadingState from "../components/LoadingState";
 import BottomNavigation from "../components/BottomNavigation";
 import { colors, spacing, borderRadius, shadows, typography } from "../styles/theme";
-import { ABAS_PRINCIPAIS } from "../navigation/tabs";
+import { abasDoApp } from "../navigation/tabs";
+import { useEhVendedor, ehPedidoPendenteDeEntrega } from "../hooks/useEhVendedor";
 import type { DocumentoFirestore } from "../types/models";
 
 export default function Perfil({ navigation }: any) {
@@ -124,26 +125,6 @@ export default function Perfil({ navigation }: any) {
     await carregarDadosUsuario();
     setRefreshing(false);
   };
-
-  function deletarPedido(pedido: any) {
-    Alert.alert("Excluir pedido", "Deseja apagar este pedido?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Apagar",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteDoc(doc(db, "pedidos", pedido.id));
-            setPedidosRecebidos((prev) => prev.filter((p) => p.id !== pedido.id));
-            Alert.alert("Sucesso", "Pedido removido");
-          } catch (error) {
-            console.log(error);
-            Alert.alert("Erro", "Não foi possível apagar o pedido");
-          }
-        },
-      },
-    ]);
-  }
 
   function escolherOpcaoImagem() {
     Alert.alert("Foto de Perfil", "De onde você quer pegar a foto?", [
@@ -297,7 +278,21 @@ export default function Perfil({ navigation }: any) {
     }
   }
 
-  const isAdmin = userData.papel === "admin";
+  const isAdmin = useEhVendedor();
+
+  // O vendedor não cancela: só entrega. A lista mostra o que ainda está com ele.
+  const pedidosPendentes = pedidosRecebidos.filter((p: any) => ehPedidoPendenteDeEntrega(p.status));
+
+  function rotuloStatusEntrega(status: string) {
+    switch (status) {
+      case "pago":
+        return "💰 Pago · preparar";
+      case "homologada":
+        return "📦 Pronto para retirada";
+      default:
+        return "⏳ Aguardando pagamento";
+    }
+  }
 
   if (loading)
     return <LoadingState mensagem="Carregando seu perfil..." />;
@@ -515,23 +510,32 @@ export default function Perfil({ navigation }: any) {
                 </View>
 
                 <View style={styles.card}>
-                  <Text style={styles.cardTitle}>📦 Pedidos Recebidos</Text>
-                  {pedidosRecebidos.length === 0 ? (
-                    <Text style={styles.emptyText}>Nenhum pedido recebido ainda</Text>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.cardTitle}>📦 Pedidos Pendentes</Text>
+                    <Text style={styles.pendingCount}>{pedidosPendentes.length} para entregar</Text>
+                  </View>
+                  {pedidosPendentes.length === 0 ? (
+                    <Text style={styles.emptyText}>Nenhum pedido aguardando entrega 🎉</Text>
                   ) : (
-                    pedidosRecebidos.slice(0, 5).map((pedido) => (
+                    pedidosPendentes.slice(0, 5).map((pedido: any) => (
                       <View key={pedido.id} style={styles.pedidoItem}>
                         <View style={styles.pedidoHeader}>
                           <Text style={styles.pedidoId}>Pedido #{pedido.id.slice(-6)}</Text>
-                          <Text style={[styles.pedidoStatus, pedido.status === "finalizado" ? styles.statusSuccess : styles.statusPending]}>
-                            {pedido.status === "finalizado" ? "✅ Finalizado" : "⏳ Pendente"}
+                          <Text style={[styles.pedidoStatus, styles.statusPending]}>
+                            {rotuloStatusEntrega(pedido.status)}
                           </Text>
                         </View>
                         <Text style={styles.pedidoDate}>{formatarData(pedido.criadoEm)}</Text>
                         <Text style={styles.pedidoTotal}>Total: R$ {pedido.total}</Text>
-                        <TouchableOpacity style={styles.deletePedidoButton} onPress={() => deletarPedido(pedido)}>
-                          <Ionicons name="trash-bin" size={15} color={colors.danger} />
-                          <Text style={styles.deletePedidoText}>Apagar pedido</Text>
+                        <TouchableOpacity
+                          style={styles.entregarButton}
+                          onPress={() => navigation.navigate("LerQRCode", {
+                            pedidoId: pedido.id,
+                            codigoNumerico: pedido.codigoNumerico,
+                            acao: pedido.status === "homologada" ? "retirar" : "homologar",
+                          })}
+                        >
+                          <Text style={styles.entregarButtonText}>📷 Entregar pedido</Text>
                         </TouchableOpacity>
                       </View>
                     ))
@@ -562,7 +566,7 @@ export default function Perfil({ navigation }: any) {
       </ScrollView>
 
       <BottomNavigation
-        abas={ABAS_PRINCIPAIS}
+        abas={abasDoApp(isAdmin)}
         ativa="Perfil"
         onSelect={(key) => navigation.navigate(key)}
       />
@@ -712,8 +716,9 @@ const styles = StyleSheet.create({
   statusPending: { color: colors.warning },
   pedidoDate: { fontSize: 12, color: colors.textLight, marginBottom: 5 },
   pedidoTotal: { fontSize: 14, fontWeight: "700", color: colors.text },
-  deletePedidoButton: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", marginTop: spacing.sm, gap: 4, paddingVertical: 8, paddingHorizontal: spacing.md, backgroundColor: "rgba(255,59,71,0.12)", borderRadius: borderRadius.round, minHeight: 36 },
-  deletePedidoText: { fontSize: 12, color: colors.danger, fontWeight: "600" },
+  pendingCount: { fontSize: 12, color: colors.warning, fontWeight: "700" },
+  entregarButton: { flexDirection: "row", alignItems: "center", alignSelf: "flex-start", marginTop: spacing.sm, gap: 6, paddingVertical: 10, paddingHorizontal: spacing.lg, backgroundColor: colors.primary, borderRadius: borderRadius.round, minHeight: 40 },
+  entregarButtonText: { fontSize: 13, color: colors.white, fontWeight: "700" },
   avaliacaoItem: { marginBottom: spacing.md, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
   avaliacaoHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
   avaliacaoStars: { fontSize: 15, color: colors.secondary },

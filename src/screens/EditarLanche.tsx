@@ -95,23 +95,23 @@ export default function EditarLanche({ route, navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📋 Informações Básicas</Text>
           <Text style={styles.label}>Nome do lanche *</Text>
-          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Ex: X-Burger Especial" />
+          <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholderTextColor={colors.textSecondary} placeholder="Ex: X-Burger Especial" />
           <Text style={styles.label}>Preço (R$) *</Text>
-          <TextInput style={styles.input} value={preco} onChangeText={setPreco} keyboardType="numeric" placeholder="0,00" />
+          <TextInput style={styles.input} value={preco} onChangeText={setPreco} keyboardType="numeric" placeholderTextColor={colors.textSecondary} placeholder="0,00" />
           <Text style={styles.label}>Descrição *</Text>
-          <TextInput style={[styles.input, styles.textArea]} value={descricao} onChangeText={setDescricao} placeholder="Descreva seu lanche..." multiline />
+          <TextInput style={[styles.input, styles.textArea]} value={descricao} onChangeText={setDescricao} placeholderTextColor={colors.textSecondary} placeholder="Descreva seu lanche..." multiline />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📦 Estoque e Disponibilidade</Text>
           <Text style={styles.label}>Quantidade disponível</Text>
-          <TextInput style={styles.input} value={quantidadeDisponivel} onChangeText={setQuantidadeDisponivel} keyboardType="numeric" placeholder="10" />
+          <TextInput style={styles.input} value={quantidadeDisponivel} onChangeText={setQuantidadeDisponivel} keyboardType="numeric" placeholderTextColor={colors.textSecondary} placeholder="10" />
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>Lanche disponível para venda</Text>
             <Switch value={disponivel} onValueChange={setDisponivel} trackColor={{ false: colors.borderLight, true: colors.primary }} />
           </View>
           <Text style={styles.label}>Tempo de preparo (minutos)</Text>
-          <TextInput style={styles.input} value={tempoPreparo} onChangeText={setTempoPreparo} keyboardType="numeric" placeholder="15-25" />
+          <TextInput style={styles.input} value={tempoPreparo} onChangeText={setTempoPreparo} keyboardType="numeric" placeholderTextColor={colors.textSecondary} placeholder="15-25" />
         </View>
 
         <View style={styles.section}>
@@ -130,7 +130,7 @@ export default function EditarLanche({ route, navigation }: any) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>🥗 Ingredientes</Text>
-          <TextInput style={styles.input} value={ingredientes} onChangeText={setIngredientes} placeholder="Pão, hambúrguer, queijo, alface, tomate (separados por vírgula)" />
+          <TextInput style={styles.input} value={ingredientes} onChangeText={setIngredientes} placeholderTextColor={colors.textSecondary} placeholder="Pão, hambúrguer, queijo, alface, tomate (separados por vírgula)" />
           <Text style={styles.helperText}>Separe os ingredientes por vírgula</Text>
         </View>
 
@@ -138,6 +138,7 @@ export default function EditarLanche({ route, navigation }: any) {
           <Text style={styles.sectionTitle}>📍 Local de Retirada</Text>
           <TextInput
             style={styles.input}
+            placeholderTextColor={colors.textSecondary}
             placeholder="Ex: Cantina do IFSul, Sala 101 / Rua das Flores, 123"
             value={localRetirada}
             onChangeText={setLocalRetirada}
@@ -152,7 +153,7 @@ export default function EditarLanche({ route, navigation }: any) {
           {promocao && (
             <View>
               <Text style={styles.label}>Preço promocional (R$)</Text>
-              <TextInput style={styles.input} value={precoPromocional} onChangeText={setPrecoPromocional} keyboardType="numeric" placeholder="0,00" />
+              <TextInput style={styles.input} value={precoPromocional} onChangeText={setPrecoPromocional} keyboardType="numeric" placeholderTextColor={colors.textSecondary} placeholder="0,00" />
               <Text style={styles.helperText}>O preço original será mostrado riscado</Text>
             </View>
           )}
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   switchLabel: { fontSize: 16, color: colors.text },
   checkboxRow: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   checkboxLabel: { fontSize: 16, marginLeft: 12, color: colors.text },
-  helperText: { fontSize: 11, color: colors.textLight, marginTop: 5 },
+  helperText: { fontSize: 12, color: colors.textSecondary, marginTop: 6 },
   buttonContainer: { padding: 20, marginBottom: 30 },
   saveButton: { backgroundColor: colors.success, paddingVertical: 16, borderRadius: 12, alignItems: "center", marginBottom: 12 },
   saveButtonText: { color: colors.white, fontSize: 18, fontWeight: "bold" },

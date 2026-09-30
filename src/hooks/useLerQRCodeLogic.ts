@@ -60,6 +60,15 @@ export function useLerQRCodeLogic(route: any, navigation: any) {
         qrLock.current = false;
         return;
       }
+      // O pedido vem da tela que o vendedor escolheu: se o QR for de outro,
+      // o vendedor provavelmente está olhando a tela errada.
+      if (pedidoId && id !== pedidoId) {
+        Alert.alert('Aviso', 'Este QR Code é de outro pedido. Confira o pedido aberto na tela.');
+        setScanned(false);
+        setLoading(false);
+        qrLock.current = false;
+        return;
+      }
       const sucesso = await finalizarPedido(id);
       if (sucesso) {
         const msg = acao === 'retirar' ? 'Pedido retirado com sucesso!' : 'Compra realizada com sucesso!';
@@ -139,6 +148,8 @@ export function useLerQRCodeLogic(route: any, navigation: any) {
     usandoCodigo,
     setUsandoCodigo,
     acao,
+    /** Pedido escolhido na tela anterior: fica visível durante a leitura. */
+    pedidoId,
     handleBarCodeScanned,
     confirmarPorCodigo,
   };

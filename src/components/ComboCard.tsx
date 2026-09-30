@@ -1,14 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { colors, borderRadius, spacing, shadows } from '../styles/theme';
-import { DESCONTO_COMBO } from '../hooks/useComboLogic';
 
 type Props = {
   onPress: () => void;
   compacto?: boolean;
 };
 
-/** Card que abre o "Monte seu combo" na Home. */
+/** Card que abre o "Monte seu combo" (Home e Cardápio). */
 export default function ComboCard({ onPress, compacto }: Props) {
   return (
     <TouchableOpacity
@@ -24,9 +23,7 @@ export default function ComboCard({ onPress, compacto }: Props) {
           Lanche + bebida + doce em 3 toques
         </Text>
         {!compacto && (
-          <Text style={styles.selo}>
-            {Math.round(DESCONTO_COMBO * 100)}% de desconto já aplicado
-          </Text>
+          <Text style={styles.selo}>Desconto configurado pelo vendedor</Text>
         )}
       </View>
 

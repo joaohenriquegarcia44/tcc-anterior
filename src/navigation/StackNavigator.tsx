@@ -53,18 +53,18 @@ export default function StackNavigator() {
       <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
       <Stack.Screen name="CriarLanche" component={CriarLanche} options={{ title: "Criar Lanche" }} />
       <Stack.Screen name="EditarLanche" component={EditarLanche} options={{ title: "Editar Lanche" }} />
-      <Stack.Screen name="PainelVendedor" component={PainelVendedor} options={{ title: "Painel do vendedor" }} />
+      <Stack.Screen name="PainelVendedor" component={PainelVendedor} options={{ headerShown: false }} />
       <Stack.Screen name="Produto" component={Produto} options={{ title: "" }} />
       <Stack.Screen name="Carrinho" component={Carrinho} options={{ title: "Seu carrinho" }} />
       <Stack.Screen name="ConfirmarPedido" component={ConfirmarPedido} options={{ title: "" }} />
       <Stack.Screen name="QRCodePedido" component={QRCodePedido} options={{ title: "" }} />
       <Stack.Screen name="ExibirQRCode" component={ExibirQRCode} options={{ title: "Pagamento PIX" }} />
       <Stack.Screen name="AvaliarProduto" component={AvaliarProduto} options={{ title: "Avaliar Produto" }} />
-      <Stack.Screen name="PedidosRecebidos" component={PedidosRecebidos} options={{ title: "Pedidos pendentes" }} />
+      <Stack.Screen name="PedidosRecebidos" component={PedidosRecebidos} options={{ headerShown: false }} />
       <Stack.Screen name="MeusPedidos" component={MeusPedidos} options={{ headerShown: false }} />
       <Stack.Screen name="AvaliarPedido" component={AvaliarPedido} options={{ title: "" }} />
       <Stack.Screen name="GraficoVendas" component={GraficoVendas} options={{ title: "Gráficos" }} />
-      <Stack.Screen name="Vendas" component={Vendas} options={{ title: "Vendas" }} />
+      <Stack.Screen name="Vendas" component={Vendas} options={{ headerShown: false }} />
       <Stack.Screen name="PoliticasPrivacidade" component={PoliticasPrivacidade} options={{ title: "Política de Privacidade" }} />
       <Stack.Screen name="TermosDeUso" component={TermosDeUso} options={{ title: "Termos de Uso" }} />
     </Stack.Navigator>

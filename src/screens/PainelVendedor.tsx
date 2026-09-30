@@ -8,28 +8,24 @@ import {
   TouchableOpacity,
   Alert,
   RefreshControl,
-  Modal,
-  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { collection, getDocs, deleteDoc, doc, query, where, updateDoc, getDoc } from "firebase/firestore";
+import { collection, getDocs, deleteDoc, doc, query, where, getDoc } from "firebase/firestore";
 import { db, auth } from "../database/database";
 import { colors, spacing, borderRadius, shadows, typography } from "../styles/theme";
-import AdminCard from "../components/AdminCard";
 import FoodImage from "../components/FoodImage";
 import PrimaryButton from "../components/PrimaryButton";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
+import HeaderVendedor from "../components/HeaderVendedor";
+import BottomNavigation from "../components/BottomNavigation";
+import { ABAS_VENDEDOR } from "../navigation/tabs";
 
 export default function PainelVendedor({ navigation }: any) {
   const [lanches, setLanches] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [modalBonificacao, setModalBonificacao] = useState(false);
-  const [reaisGasto, setReaisGasto] = useState("5");
-  const [reaisDesconto, setReaisDesconto] = useState("0.5");
-  const [salvandoBonificacao, setSalvandoBonificacao] = useState(false);
 
   useEffect(() => {
     verificarPermissao();
@@ -85,54 +81,6 @@ export default function PainelVendedor({ navigation }: any) {
     await buscarLanches();
     setRefreshing(false);
   };
-
-  async function carregarBonificacao() {
-    if (!auth.currentUser) return;
-    try {
-      const userRef = doc(db, "usuarios", auth.currentUser.uid);
-      const userSnap = await getDoc(userRef);
-      const bonificacao = userSnap.data()?.bonificacao;
-      if (bonificacao) {
-        setReaisGasto(String(bonificacao.reaisGasto ?? 5));
-        setReaisDesconto(String(bonificacao.reaisDesconto ?? 0.5));
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async function abrirBonificacao() {
-    await carregarBonificacao();
-    setModalBonificacao(true);
-  }
-
-  async function salvarBonificacao() {
-    if (!auth.currentUser) return;
-    const gasto = parseFloat(reaisGasto.replace(",", "."));
-    const desconto = parseFloat(reaisDesconto.replace(",", "."));
-    if (isNaN(gasto) || gasto <= 0) {
-      Alert.alert("Erro", "Informe um valor de gasto válido maior que zero");
-      return;
-    }
-    if (isNaN(desconto) || desconto < 0) {
-      Alert.alert("Erro", "Informe um valor de desconto válido");
-      return;
-    }
-    setSalvandoBonificacao(true);
-    try {
-      const userRef = doc(db, "usuarios", auth.currentUser.uid);
-      await updateDoc(userRef, {
-        bonificacao: { reaisGasto: gasto, reaisDesconto: desconto },
-      });
-      Alert.alert("Sucesso", "Bonificação atualizada com sucesso!");
-      setModalBonificacao(false);
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Erro", "Não foi possível salvar a bonificação");
-    } finally {
-      setSalvandoBonificacao(false);
-    }
-  }
 
   const deletarLanche = (id: string) => {
     Alert.alert("Excluir", "Deseja excluir este lanche?", [
@@ -200,12 +148,18 @@ export default function PainelVendedor({ navigation }: any) {
   );
 
   if (loading) {
-    return <LoadingState mensagem="Verificando permissão..." sub="Só um instante" />;
+    return (
+      <View style={styles.safeArea}>
+        <HeaderVendedor navigation={navigation} tela="Meus lanches" />
+        <LoadingState mensagem="Verificando permissão..." sub="Só um instante" />
+      </View>
+    );
   }
 
   if (error) {
     return (
       <View style={styles.safeArea}>
+        <HeaderVendedor navigation={navigation} tela="Meus lanches" />
         <EmptyState icon="⚠️" titulo="Erro ao carregar lanches" descricao={error} />
         <View style={styles.retryBox}>
           <PrimaryButton title="Tentar novamente" onPress={buscarLanches} />
@@ -215,163 +169,91 @@ export default function PainelVendedor({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        contentContainerStyle={styles.scroll}
-      >
-        <View style={styles.menu}>
-          <AdminCard
-            icon="➕"
-            titulo="Criar lanche"
-            subtitulo="Publique um novo lanche no cardápio"
-            onPress={() => navigation.navigate("CriarLanche")}
-            destaque
-            badge="NOVO"
-          />
-          <AdminCard
-            icon="🧾"
-            titulo="Pedidos recebidos"
-            subtitulo="Confirme e prepare os pedidos"
-            onPress={() => navigation.navigate("PedidosRecebidos")}
-          />
-          <AdminCard
-            icon="📷"
-            titulo="Escanear QR Code"
-            subtitulo="Confirme a retirada do pedido"
-            onPress={() => navigation.navigate("LerQRCode")}
-          />
-          <AdminCard
-            icon="📈"
-            titulo="Vendas"
-            subtitulo="Acompanhe seu desempenho"
-            onPress={() => navigation.navigate("Vendas")}
-          />
-          <AdminCard
-            icon="🎁"
-            titulo="Fidelidade"
-            subtitulo="Defina a bonificação dos seus clientes"
-            onPress={abrirBonificacao}
-          />
-        </View>
+    <View style={styles.safeArea}>
+      <HeaderVendedor
+        navigation={navigation}
+        tela="Meus lanches"
+        direita={{
+          icone: "➕",
+          rotulo: "Criar lanche",
+          onPress: () => navigation.navigate("CriarLanche"),
+        }}
+      />
 
-        {lanches.length === 0 ? (
-          <EmptyState
-            icon="🍔"
-            titulo="Você ainda não tem lanches"
-            descricao="Que tal criar seu primeiro lanche e começar a vender para os alunos do IFSul?"
-          >
-            <PrimaryButton
-              title="Criar lanche"
-              onPress={() => navigation.navigate("CriarLanche")}
-              style={styles.emptyBotao}
+      <SafeAreaView style={styles.conteudo} edges={["left", "right", "bottom"]}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
-          </EmptyState>
-        ) : (
-          <>
-            {sections.map((section) => (
-              <View key={section.title} style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Text style={[styles.sectionTitle, { color: section.color }]}>{section.title}</Text>
-                  <View style={[styles.sectionContador, { borderColor: section.color }]}>
-                    <Text style={[styles.sectionContadorTexto, { color: section.color }]}>
-                      {section.data.length}
-                    </Text>
+          }
+          contentContainerStyle={styles.scroll}
+        >
+          {lanches.length === 0 ? (
+            <EmptyState
+              icon="🍔"
+              titulo="Você ainda não tem lanches"
+              descricao="Que tal criar seu primeiro lanche e começar a vender para os alunos do IFSul?"
+            >
+              <PrimaryButton
+                title="Criar lanche"
+                onPress={() => navigation.navigate("CriarLanche")}
+                style={styles.emptyBotao}
+              />
+            </EmptyState>
+          ) : (
+            <>
+              {sections.map((section) => (
+                <View key={section.title} style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                    <Text style={[styles.sectionTitle, { color: section.color }]}>{section.title}</Text>
+                    <View style={[styles.sectionContador, { borderColor: section.color }]}>
+                      <Text style={[styles.sectionContadorTexto, { color: section.color }]}>
+                        {section.data.length}
+                      </Text>
+                    </View>
                   </View>
+
+                  <FlatList
+                    horizontal
+                    data={section.data.slice(0, 5)}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderItem}
+                    showsHorizontalScrollIndicator={false}
+                    ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
+                  />
                 </View>
+              ))}
 
-                <FlatList
-                  horizontal
-                  data={section.data.slice(0, 5)}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderItem}
-                  showsHorizontalScrollIndicator={false}
-                  ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
-                />
-              </View>
-            ))}
+              <PrimaryButton
+                title="+ Novo lanche"
+                onPress={() => navigation.navigate("CriarLanche")}
+                variant="secondary"
+                style={styles.novoBotao}
+              />
+            </>
+          )}
+        </ScrollView>
+      </SafeAreaView>
 
-            <PrimaryButton
-              title="+ Novo lanche"
-              onPress={() => navigation.navigate("CriarLanche")}
-              variant="secondary"
-              style={styles.novoBotao}
-            />
-          </>
-        )}
-      </ScrollView>
-
-      <Modal
-        visible={modalBonificacao}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalBonificacao(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>🎁 Configurar bonificação</Text>
-            <Text style={styles.modalSubtitle}>
-              Defina quanto o cliente ganha de desconto a cada valor gasto nos seus lanches.
-            </Text>
-
-            <Text style={styles.label}>A cada R$ gasto</Text>
-            <TextInput
-              style={styles.input}
-              value={reaisGasto}
-              onChangeText={setReaisGasto}
-              keyboardType="numeric"
-              placeholder="Ex: 5"
-              placeholderTextColor={colors.textLight}
-            />
-
-            <Text style={styles.label}>gera R$ de desconto</Text>
-            <TextInput
-              style={styles.input}
-              value={reaisDesconto}
-              onChangeText={setReaisDesconto}
-              keyboardType="numeric"
-              placeholder="Ex: 0,5"
-              placeholderTextColor={colors.textLight}
-            />
-
-            <Text style={styles.modalHint}>
-              Ex: a cada R$ {reaisGasto || "X"} gasto, o cliente acumula R$ {reaisDesconto || "Y"} de desconto
-              de fidelidade.
-            </Text>
-
-            <PrimaryButton
-              title="Salvar"
-              onPress={salvarBonificacao}
-              loading={salvandoBonificacao}
-              disabled={salvandoBonificacao}
-              style={styles.modalSalvar}
-            />
-            <PrimaryButton
-              title="Cancelar"
-              onPress={() => setModalBonificacao(false)}
-              variant="ghost"
-              disabled={salvandoBonificacao}
-            />
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+      {/* O painel não é uma aba: a barra serve só para sair daqui. */}
+      <BottomNavigation
+        abas={ABAS_VENDEDOR}
+        ativa="PainelVendedor"
+        onSelect={(key) => key !== "PainelVendedor" && navigation.navigate(key)}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.background },
+  conteudo: { flex: 1 },
   scroll: { padding: spacing.xl, paddingBottom: spacing.xxxl },
-
-  menu: { gap: spacing.md, marginBottom: spacing.xxl },
 
   section: { marginBottom: spacing.xxl },
   sectionHeader: {
@@ -440,29 +322,4 @@ const styles = StyleSheet.create({
   novoBotao: { marginTop: spacing.sm },
 
   retryBox: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
-
-  modalOverlay: { flex: 1, backgroundColor: colors.overlay, justifyContent: "center", padding: spacing.xl },
-  modalContainer: {
-    backgroundColor: colors.card,
-    borderRadius: borderRadius.xxl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
-    ...shadows.large,
-  },
-  modalTitle: { ...typography.h2, color: colors.white, marginBottom: spacing.sm, textAlign: "center" },
-  modalSubtitle: { fontSize: 13, color: colors.textSecondary, textAlign: "center", marginBottom: spacing.md, lineHeight: 19 },
-  label: { fontSize: 11, color: colors.textLight, marginBottom: spacing.sm, marginTop: spacing.md, fontWeight: "700", letterSpacing: 0.5 },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    fontSize: 15,
-    backgroundColor: colors.input,
-    color: colors.text,
-    minHeight: 48,
-  },
-  modalHint: { fontSize: 12, color: colors.textLight, marginTop: spacing.lg, fontStyle: "italic", textAlign: "center" },
-  modalSalvar: { marginTop: spacing.xl, marginBottom: spacing.sm },
 });

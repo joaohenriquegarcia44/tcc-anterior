@@ -2,10 +2,10 @@ import { useContext, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import { CartContext } from '../services/CartContext';
 import { auth } from '../database/database';
+import { calcularDescontoCombo, DESCONTO_COMBO_PADRAO } from '../services/descontoCombo';
+import { useDescontoComboLogic } from './useDescontoComboLogic';
 
-/** Regras do combo: 10% de desconto, com teto para não pesar demais no vendedor. */
-export const DESCONTO_COMBO = 0.1;
-export const TETO_DESCONTO_COMBO = 5;
+export { DESCONTO_COMBO_PADRAO };
 
 export const PASSOS_COMBO = [
   { id: 'lanche', rotulo: 'Lanche', emoji: '🍔' },
@@ -40,6 +40,12 @@ export function useComboLogic(lanches: any[], onFechar: () => void) {
   const [salvando, setSalvando] = useState(false);
 
   const uid = auth.currentUser?.uid;
+  // O desconto já aparece ao abrir: enquanto não há lanche escolhido, vale o
+  // do vendedor do cardápio; depois, o de quem escolheu.
+  const { desconto: descontoCombo, carregando: carregandoDesconto } = useDescontoComboLogic(
+    lanches,
+    escolha.lanche?.userId
+  );
 
   const disponiveis = useMemo(
     () =>
@@ -72,8 +78,8 @@ export function useComboLogic(lanches: any[], onFechar: () => void) {
   );
 
   const desconto = useMemo(
-    () => Math.min(subtotal * DESCONTO_COMBO, TETO_DESCONTO_COMBO),
-    [subtotal]
+    () => calcularDescontoCombo(subtotal, descontoCombo),
+    [subtotal, descontoCombo]
   );
 
   const total = Math.max(0, subtotal - desconto);
@@ -159,6 +165,8 @@ export function useComboLogic(lanches: any[], onFechar: () => void) {
     itensEscolhidos,
     subtotal,
     desconto,
+    descontoCombo,
+    carregandoDesconto,
     total,
     completo,
     salvando,

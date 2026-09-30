@@ -33,13 +33,15 @@ import LoadingState from "../components/LoadingState";
 import { useStatusLancheriaLogic } from "../hooks/useStatusLancheriaLogic";
 import { useRankingSemanaLogic } from "../hooks/useRankingSemanaLogic";
 import { useRecomendacoesLogic } from "../hooks/useRecomendacoesLogic";
-import { ABAS_PRINCIPAIS } from "../navigation/tabs";
+import { abasDoApp } from "../navigation/tabs";
+import { useEhVendedor } from "../hooks/useEhVendedor";
 
 /** Foto de hambúrguer usada como fundo do convite "Ver cardápio". */
 const FOTO_CARDAPIO = require("../../assets/burger-hero.jpg");
 
 export default function Home({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const ehVendedor = useEhVendedor();
   const { width } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const { totalItens, adicionarAoCarrinho } = useContext(CartContext);
@@ -130,13 +132,16 @@ export default function Home({ navigation }: any) {
             </View>
 
             <View style={styles.headerAcoes}>
-              <CircleActionButton
-                icon="🛒"
-                titulo="Abrir carrinho"
-                onPress={() => navigation.navigate("Carrinho")}
-                tamanho={44}
-                badge={totalItens}
-              />
+              {/* Vendedor não compra: o carrinho some para ele. */}
+              {!ehVendedor && (
+                <CircleActionButton
+                  icon="🛒"
+                  titulo="Abrir carrinho"
+                  onPress={() => navigation.navigate("Carrinho")}
+                  tamanho={44}
+                  badge={totalItens}
+                />
+              )}
               <TouchableOpacity
                 onPress={() => navigation.navigate("Perfil")}
                 style={styles.perfilBotao}
@@ -156,6 +161,13 @@ export default function Home({ navigation }: any) {
             onSelect={escolherHumor}
             selecionada={["lanche", "bebida", "doce"].includes(categoriaSelecionada) ? categoriaSelecionada : undefined}
           />
+
+          {/* Montar combo mora junto do atalho de humor, no início da Home. */}
+          {lanches.length > 0 && (
+            <View style={styles.combo}>
+              <ComboCard onPress={() => setComboAberto(true)} />
+            </View>
+          )}
         </View>
 
         {/* 2 + 3 · STATUS DA LANCHERIA E PRÓXIMO INTERVALO */}
@@ -195,13 +207,6 @@ export default function Home({ navigation }: any) {
               }
               onVerTodos={() => navigation.navigate("Cardapio")}
             />
-          </View>
-        )}
-
-        {/* 5 · MONTE SEU COMBO */}
-        {categoriaSelecionada === "todos" && searchText.trim() === "" && lanches.length > 0 && (
-          <View style={styles.secao}>
-            <ComboCard onPress={() => setComboAberto(true)} />
           </View>
         )}
 
@@ -300,7 +305,7 @@ export default function Home({ navigation }: any) {
       </ScrollView>
 
       <BottomNavigation
-        abas={ABAS_PRINCIPAIS}
+        abas={abasDoApp(ehVendedor)}
         ativa="Home"
         onSelect={(key) => navigation.navigate(key)}
       />
@@ -348,6 +353,7 @@ const styles = StyleSheet.create({
   busca: { marginTop: spacing.lg },
 
   bloco: { paddingHorizontal: spacing.xl, marginTop: spacing.xl },
+  combo: { marginTop: spacing.lg },
   cardsRow: {
     flexDirection: "row",
     gap: spacing.md,

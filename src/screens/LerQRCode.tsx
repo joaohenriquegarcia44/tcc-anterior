@@ -26,6 +26,7 @@ export default function LerQRCode({ route, navigation }: any) {
     setCodigoDigitado,
     usandoCodigo,
     setUsandoCodigo,
+    pedidoId,
     handleBarCodeScanned,
     confirmarPorCodigo,
   } = useLerQRCodeLogic(route, navigation);
@@ -62,6 +63,14 @@ export default function LerQRCode({ route, navigation }: any) {
           barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
         >
           <View style={styles.overlay}>
+            {/* O vendedor precisa ver qual pedido está confirmando. */}
+            {!!pedidoId && (
+              <View style={[styles.avisoPedido, { top: insets.top + spacing.md }]}>
+                <Text style={styles.avisoPedidoTexto}>
+                  Confirmando o pedido #{String(pedidoId).slice(-6)}
+                </Text>
+              </View>
+            )}
             <View style={styles.scanArea}>
               <Text style={styles.scanText}>Centralize o QR Code</Text>
             </View>
@@ -110,6 +119,17 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
   camera: { flex: 1 },
   overlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  avisoPedido: {
+    position: "absolute",
+    alignSelf: "center",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.85)",
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  avisoPedidoTexto: { color: colors.white, fontSize: 13, fontWeight: "700" },
   scanArea: { width: 250, height: 250, borderWidth: 2, borderColor: colors.primary, borderRadius: 20, justifyContent: "center", alignItems: "center" },
   scanText: { color: colors.white, fontSize: 16, fontWeight: "bold", backgroundColor: "rgba(0,0,0,0.7)", paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 },
   codigoContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },

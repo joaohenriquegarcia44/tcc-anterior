@@ -19,10 +19,12 @@ import OrderStatus from "../components/OrderStatus";
 import PrimaryButton from "../components/PrimaryButton";
 import EmptyState from "../components/EmptyState";
 import { colors, spacing, borderRadius, shadows, typography } from "../styles/theme";
-import { ABAS_PRINCIPAIS } from "../navigation/tabs";
+import { abasDoApp } from "../navigation/tabs";
+import { useEhVendedor } from "../hooks/useEhVendedor";
 
 export default function MeusPedidos({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const ehVendedor = useEhVendedor();
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [pedidoSelecionado, setPedidoSelecionado] = useState<any | null>(null);
@@ -191,7 +193,7 @@ export default function MeusPedidos({ navigation }: any) {
       />
 
       <BottomNavigation
-        abas={ABAS_PRINCIPAIS}
+        abas={abasDoApp(ehVendedor)}
         ativa="MeusPedidos"
         onSelect={(key) => navigation.navigate(key)}
       />

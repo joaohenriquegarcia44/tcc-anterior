@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,11 @@ import BottomNavigation from "../components/BottomNavigation";
 import CircleActionButton from "../components/CircleActionButton";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
-import { ABAS_PRINCIPAIS } from "../navigation/tabs";
+import MoodSelector from "../components/MoodSelector";
+import ComboCard from "../components/ComboCard";
+import ComboBuilder from "../components/ComboBuilder";
+import { abasDoApp } from "../navigation/tabs";
+import { useEhVendedor } from "../hooks/useEhVendedor";
 
 /**
  * Cardápio completo da lancheria.
@@ -27,9 +31,12 @@ import { ABAS_PRINCIPAIS } from "../navigation/tabs";
  */
 export default function Cardapio({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const ehVendedor = useEhVendedor();
   const { width } = useWindowDimensions();
   const { totalItens } = useContext(CartContext);
+  const [comboAberto, setComboAberto] = useState(false);
   const {
+    lanches,
     filteredLanches,
     loading,
     searchText,
@@ -69,13 +76,16 @@ export default function Cardapio({ navigation }: any) {
               <Text style={styles.titulo}>Cardápio</Text>
               <Text style={styles.subtitulo}>Retirada no IF · sem taxa de entrega</Text>
             </View>
-            <CircleActionButton
-              icon="🛒"
-              titulo="Abrir carrinho"
-              onPress={() => navigation.navigate("Carrinho")}
-              tamanho={44}
-              badge={totalItens}
-            />
+            {/* Vendedor não compra: o carrinho some para ele. */}
+            {!ehVendedor && (
+              <CircleActionButton
+                icon="🛒"
+                titulo="Abrir carrinho"
+                onPress={() => navigation.navigate("Carrinho")}
+                tamanho={44}
+                badge={totalItens}
+              />
+            )}
           </View>
 
           <SearchBar
@@ -84,6 +94,21 @@ export default function Cardapio({ navigation }: any) {
             placeholder="Buscar por nome ou sabor..."
             style={styles.busca}
           />
+        </View>
+
+        {/* COMO TÁ SEU DIA? + MONTE SEU COMBO */}
+        <View style={styles.bloco}>
+          <MoodSelector
+            onSelect={filtrarPorCategoria}
+            selecionada={["lanche", "bebida", "doce"].includes(categoriaSelecionada) ? categoriaSelecionada : undefined}
+          />
+
+          {/* Montar combo faz parte do atalho de humor, igual na Home. */}
+          {lanches.length > 0 && (
+            <View style={styles.combo}>
+              <ComboCard onPress={() => setComboAberto(true)} />
+            </View>
+          )}
         </View>
 
         <View style={styles.categorias}>
@@ -131,9 +156,15 @@ export default function Cardapio({ navigation }: any) {
       </ScrollView>
 
       <BottomNavigation
-        abas={ABAS_PRINCIPAIS}
+        abas={abasDoApp(ehVendedor)}
         ativa="Cardapio"
         onSelect={(key) => navigation.navigate(key)}
+      />
+
+      <ComboBuilder
+        visivel={comboAberto}
+        onFechar={() => setComboAberto(false)}
+        lanches={lanches}
       />
     </View>
   );
@@ -154,6 +185,9 @@ const styles = StyleSheet.create({
   titulo: { ...typography.h1 },
   subtitulo: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
   busca: { marginTop: spacing.lg },
+
+  bloco: { paddingHorizontal: spacing.xl, marginTop: spacing.xl },
+  combo: { marginTop: spacing.lg },
 
   categorias: { marginTop: spacing.lg },
 

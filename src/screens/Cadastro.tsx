@@ -98,7 +98,7 @@ export default function Cadastro() {
             })}
 
             {renderCampo("E-MAIL", "✉️", {
-              placeholder: "seuemail@ifsul.edu.br",
+              placeholder: "seuemail@gmail.com",
               value: email,
               onChangeText: setEmail,
               autoCapitalize: "none",

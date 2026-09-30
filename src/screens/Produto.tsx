@@ -201,7 +201,7 @@ export default function Produto({ route, navigation }: any) {
           </View>
 
           <View style={styles.ratingSection}>
-            <StarRating rating={mediaAvaliacao} readonly={true} />
+            <StarRating rating={mediaAvaliacao} readonly={true} tamanho={22} />
             <Text style={styles.ratingText}>{mediaAvaliacao.toFixed(1)} ({avaliacoes.length} avaliações)</Text>
           </View>
 
@@ -321,15 +321,16 @@ export default function Produto({ route, navigation }: any) {
             ) : (
               avaliacoes.map((avaliacao, index) => (
                 <View key={index} style={styles.reviewCard}>
-                  <View style={styles.reviewHeader}>
-                    <View style={styles.reviewUserContainer}>
-                      <View style={styles.reviewAvatar}>
-                        <Text style={styles.reviewAvatarText}>👤</Text>
-                      </View>
-                      <Text style={styles.reviewUser}>Aluno #{avaliacao.compradorId?.slice(-6)}</Text>
+                  <View style={styles.reviewUserRow}>
+                    <View style={styles.reviewAvatar}>
+                      <Text style={styles.reviewAvatarText}>👤</Text>
                     </View>
-                    <StarRating rating={avaliacao.nota} readonly={true} />
+                    <Text style={styles.reviewUser} numberOfLines={1}>
+                      Aluno #{avaliacao.compradorId?.slice(-6)}
+                    </Text>
                   </View>
+                  {/* Estrelas abaixo do nome: em linha só elas estouram o card com fonte grande. */}
+                  <StarRating rating={avaliacao.nota} readonly tamanho={16} style={styles.reviewStars} />
                   {avaliacao.comentario && <Text style={styles.reviewComment}>"{avaliacao.comentario}"</Text>}
                   <Text style={styles.reviewDate}>
                     {new Date(avaliacao.criadoEm?.toDate()).toLocaleDateString("pt-BR")}
@@ -441,8 +442,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   categoriaText: { fontSize: 12, fontWeight: "600" },
-  ratingSection: { flexDirection: "row", alignItems: "center", marginBottom: spacing.lg },
-  ratingText: { marginLeft: 8, fontSize: 14, color: colors.textSecondary },
+  ratingSection: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", rowGap: spacing.xs, marginBottom: spacing.lg },
+  ratingText: { marginLeft: 8, fontSize: 14, color: colors.textSecondary, flexShrink: 1 },
   priceSection: { marginBottom: spacing.lg },
   priceCard: {
     flexDirection: "row",
@@ -522,8 +523,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     ...shadows.small,
   },
-  reviewHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.sm },
-  reviewUserContainer: { flexDirection: "row", alignItems: "center" },
+  reviewUserRow: { flexDirection: "row", alignItems: "center", marginBottom: spacing.sm },
   reviewAvatar: {
     width: 28,
     height: 28,
@@ -534,7 +534,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   reviewAvatarText: { fontSize: 14 },
-  reviewUser: { fontSize: 14, fontWeight: "500", color: colors.text },
+  reviewUser: { fontSize: 14, fontWeight: "500", color: colors.text, flexShrink: 1 },
+  reviewStars: { marginBottom: spacing.sm },
   reviewComment: { fontSize: 14, color: colors.textSecondary, marginBottom: spacing.sm, fontStyle: "italic", lineHeight: 20 },
   reviewDate: { fontSize: 11, color: colors.textLight },
   bottomBar: {

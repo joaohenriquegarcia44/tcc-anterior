@@ -63,7 +63,7 @@ export const colors = {
 /** Categorias do cardápio. Os `id` NÃO mudam: o filtro do Firestore depende deles. */
 export const categories = [
   { id: 'todos', nome: 'Todos', icon: '🍽️', cor: colors.primary },
-  { id: 'lanche', nome: 'Hambúrgueres', icon: '🍔', cor: colors.primary },
+  { id: 'lanche', nome: 'Salgados', icon: '🍔', cor: colors.primary },
   { id: 'bebida', nome: 'Bebidas', icon: '🥤', cor: colors.secondary },
   { id: 'doce', nome: 'Doces', icon: '🍰', cor: colors.primaryLight },
   { id: 'promocao', nome: 'Ofertas', icon: '🔥', cor: colors.secondary },

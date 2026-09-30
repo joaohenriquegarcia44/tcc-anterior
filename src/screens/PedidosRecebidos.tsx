@@ -10,7 +10,10 @@ import {
 } from "react-native";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db, auth } from "../database/database";
-import { colors } from "../styles/theme";
+import { colors, spacing } from "../styles/theme";
+import BottomNavigation from "../components/BottomNavigation";
+import HeaderVendedor from "../components/HeaderVendedor";
+import { ABAS_VENDEDOR } from "../navigation/tabs";
 
 export default function PedidosRecebidos({ navigation }: any) {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -92,21 +95,38 @@ export default function PedidosRecebidos({ navigation }: any) {
 
   return (
     <View style={styles.container}>
+      <HeaderVendedor navigation={navigation} tela="Pedidos recebidos" />
+
       <Text style={styles.titulo}>Pedidos Pendentes</Text>
       <FlatList
         data={pedidos}
         keyExtractor={(item) => item.id}
         renderItem={renderPedido}
+        contentContainerStyle={styles.lista}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />}
         ListEmptyComponent={<Text style={styles.vazio}>Nenhum pedido pendente</Text>}
+      />
+
+      <BottomNavigation
+        abas={ABAS_VENDEDOR}
+        ativa="PedidosRecebidos"
+        onSelect={(key) => key !== "PedidosRecebidos" && navigation.navigate(key)}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: colors.background },
-  titulo: { fontSize: 24, fontWeight: "bold", marginBottom: 20, color: colors.text },
+  container: { flex: 1, backgroundColor: colors.background },
+  titulo: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: colors.text,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.lg,
+  },
+  lista: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xxl },
   card: { backgroundColor: colors.card, borderRadius: 12, padding: 15, marginBottom: 15, elevation: 2 },
   pedidoId: { fontSize: 16, fontWeight: "bold", marginBottom: 5, color: colors.text },
   cliente: { fontSize: 14, color: colors.text, marginBottom: 2 },
